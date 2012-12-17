@@ -14,7 +14,7 @@ users = {}
 for p in glob.glob (os.path.join (os.path.dirname (__file__), 'domains', '*', 'passwd.in')):
 	if not os.path.isfile (p):
 		continue
-	
+
 	domain = os.path.basename (os.path.dirname (p))
 	users[domain] = {}
 
@@ -35,16 +35,6 @@ for p in glob.glob (os.path.join (os.path.dirname (__file__), 'domains', '*', 'p
 				elif c.has_section ('default:user') and c.has_option ('default:user', 'quota'):
 					obj['quota'] = c.get ('default:user', 'quota')
 
-				access = set ()
-				if c.has_option (sec, 'accessors'):
-					for accessor in c.get (sec, 'accessors').split ():
-						if '@' in accessor:
-							accessor = accessor.replace ('@', '%')
-						else:
-							accessor = '{0}%{1}'.format (accessor, domain)
-						access.add (accessor)
-				obj['accessors'] = access
-
 				users[domain][n] = obj
 			elif t == 'default':
 				pass
@@ -63,10 +53,6 @@ for dname, domain in users.items ():
 		for uname, user in domain.items ():
 			raw_credentials = {}
 			raw_credentials[uname] = user['password']
-			for accessor in user['accessors']:
-				a_uname, a_dname = accessor.split ('%')
-				if a_dname in users and a_uname in users[a_dname]:
-					raw_credentials['{0}={1}'.format (accessor, uname)] = users[a_dname][a_uname]['password']
 
 			quota = 'userdb_quota_rule=*:bytes={0}'.format (user['quota']) if 'quota' in user else ''
 			for u, p in raw_credentials.items ():
