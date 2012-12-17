@@ -62,6 +62,7 @@ for dname, domain in users.items ():
 	try:
 		for uname, user in domain.items ():
 			extra = []
+			extra.append ('userdb_mail=maildir:~/Maildir')
 			if 'quota' in user:
 				extra.append ('userdb_quota_rule=*:bytes={0}'.format (user['quota']))
 			if 'k5principals' in user:
