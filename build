@@ -70,7 +70,7 @@ for dname, domain in users.items ():
 
 			extra = ' '.join (extra)
 			mailhome = os.path.abspath (os.path.join (os.path.dirname (__file__), 'domains', dname, 'users', uname))
-			print ('{0}:{1}::::{2}::{3}'.format (uname, p, mailhome, extra), file=tpf)
+			print ('{0}:{1}::::{2}::{3}'.format (uname, user['password'], mailhome, extra), file=tpf)
 
 			maildir = os.path.join (mailhome, 'Maildir')
 			if not os.path.exists (maildir):
