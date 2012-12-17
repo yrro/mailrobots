@@ -44,8 +44,11 @@ find "$mailroot" -mindepth 1 -maxdepth 1 -type d | while read domain; do
 	fi
 
 	if test -d "$domain/users"; then
-		chown root:rrmail "$domain/users"
-		chmod 770 "$domain/users"
+		chown root:root "$domain/users"
+		chmod 700 "$domain/users"
+		setfacl -b \
+			-m u:rrmail:rwx \
+			"$domain/users"
 
 		find "$domain/users" -mindepth 1 -maxdepth 1 -type d | while read user; do
 			chown -R rrmail:rrmail "$user"
