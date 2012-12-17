@@ -58,16 +58,12 @@ for dname, domain in users.items ():
 	tpf = tempfile.NamedTemporaryFile (mode='w', dir=os.path.dirname (pfname), delete=False)
 	try:
 		for uname, user in domain.items ():
-			raw_credentials = {}
-			raw_credentials[uname] = user['password']
-
 			extra = []
 			if 'quota' in user:
 				extra.append ('userdb_quota_rule=*:bytes={0}'.format (user['quota']))
 			if 'k5principals' in user:
 				extra.append ('k5principals={0}'.format (','.join (user['k5principals'])))
-			for u, p in raw_credentials.items ():
-				print ('{0}:{1}::::{2}::{3}'.format (u, p, os.path.abspath (os.path.join (os.path.dirname (__file__), 'domains', dname, 'users', uname)), ' '.join (extra)), file=tpf)
+			print ('{0}:{1}::::{2}::{3}'.format (uname, p, os.path.abspath (os.path.join (os.path.dirname (__file__), 'domains', dname, 'users', uname)), ' '.join (extra)), file=tpf)
 		if pfacl:
 			pfacl.applyto (tpf.fileno ())
 		tpf.close ()
