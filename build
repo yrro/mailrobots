@@ -74,9 +74,12 @@ for dname, domain in users.items ():
 
 			maildir = os.path.join (mailhome, 'Maildir')
 			if not os.path.exists (maildir):
-				print ('Creating {0}'.format (pfname), file=sys.stderr)
+				print ('Creating {0}'.format (maildir), file=sys.stderr)
 				fix_perms = True
 				os.makedirs (maildir, 0700)
+				os.mkdir (os.path.join (maildir, 'cur'), 0700)
+				os.mkdir (os.path.join (maildir, 'new'), 0700)
+				os.mkdir (os.path.join (maildir, 'tmp'), 0700)
 		if pfacl:
 			pfacl.applyto (tpf.fileno ())
 		tpf.close ()
