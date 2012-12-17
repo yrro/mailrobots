@@ -47,12 +47,15 @@ for p in glob.glob (os.path.join (os.path.dirname (__file__), 'domains', '*', 'p
 		print ('Error in "{0}":'.format (p), file=sys.stderr)
 		raise
 
+fix_perms = False
+
 for dname, domain in users.items ():
 	pfname = os.path.join (os.path.dirname (__file__), 'domains', dname, 'passwd')
 	if os.path.exists (pfname):
 		pfacl = posix1e.ACL (file=pfname)
 	else:
-		print ('Creating {0}; run the permission script to set up permissions!'.format (pfname), file=sys.stderr)
+		print ('Creating {0}'.format (pfname), file=sys.stderr)
+		fix_perms = True
 		pfacl = None
 
 	tpf = tempfile.NamedTemporaryFile (mode='w', dir=os.path.dirname (pfname), delete=False)
@@ -63,7 +66,16 @@ for dname, domain in users.items ():
 				extra.append ('userdb_quota_rule=*:bytes={0}'.format (user['quota']))
 			if 'k5principals' in user:
 				extra.append ('k5principals={0}'.format (','.join (user['k5principals'])))
-			print ('{0}:{1}::::{2}::{3}'.format (uname, p, os.path.abspath (os.path.join (os.path.dirname (__file__), 'domains', dname, 'users', uname)), ' '.join (extra)), file=tpf)
+
+			extra = ' '.join (extra)
+			mailhome = os.path.abspath (os.path.join (os.path.dirname (__file__), 'domains', dname, 'users', uname))
+			print ('{0}:{1}::::{2}::{3}'.format (uname, p, mailhome, extra), file=tpf)
+
+			maildir = os.path.join (mailhome, 'Maildir')
+			if not os.path.exists (maildir):
+				print ('Creating {0}'.format (pfname), file=sys.stderr)
+				fix_perms = True
+				os.makedirs (maildir, 0700)
 		if pfacl:
 			pfacl.applyto (tpf.fileno ())
 		tpf.close ()
@@ -72,5 +84,8 @@ for dname, domain in users.items ():
 		raise
 	else:
 		os.rename (tpf.name, pfname)
+
+if fix_perms:
+	print ('Run the permissions script to fix up permissions.', file=sys.stderr)
 
 # vim: ts=4 sts=4 sw=4 noet
