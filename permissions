@@ -9,7 +9,7 @@ chmod 700 "$mailroot"
 setfacl -b \
 	-m u:Debian-exim:rx \
 	-m u:dovecot:x \
-	-m u:rrmail:x \
+	-m u:mailstorage:x \
 	"$mailroot"
 
 find "$mailroot" -mindepth 1 -maxdepth 1 -type d | while read domain; do
@@ -18,7 +18,7 @@ find "$mailroot" -mindepth 1 -maxdepth 1 -type d | while read domain; do
 	setfacl -b \
 		-m u:Debian-exim:x \
 		-m u:dovecot:x \
-		-m u:rrmail:x \
+		-m u:mailstorage:x \
 		"$domain"
 
 	if test -f "$domain/redirect"; then
@@ -47,11 +47,11 @@ find "$mailroot" -mindepth 1 -maxdepth 1 -type d | while read domain; do
 		chown root:root "$domain/users"
 		chmod 700 "$domain/users"
 		setfacl -b \
-			-m u:rrmail:rwx \
+			-m u:mailstorage:rwx \
 			"$domain/users"
 
 		find "$domain/users" -mindepth 1 -maxdepth 1 -type d | while read user; do
-			chown -R rrmail:rrmail "$user"
+			chown -R mailstorage:mailstorage "$user"
 			find "$user" -type d -exec chmod 700 {} +
 			find "$user" -type f -exec chmod 600 {} +
 		done
