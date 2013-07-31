@@ -21,37 +21,33 @@ find "$mailroot" -mindepth 1 -maxdepth 1 -type d | while read domain; do
 		-m u:mailstorage:x \
 		"$domain"
 
-	if test -f "$domain/redirect"; then
-		chown root:Debian-exim "$domain/redirect"
-		chmod 640 "$domain/redirect";
-	fi
-
-	if test -f "$domain/passwd.in"; then
+	if [[ -f $domain/passwd.in ]]; then
 		chown root:root "$domain/passwd.in"
 		chmod 600 "$domain/passwd.in"
-
-		chown root:root "$domain/passwd"
-		chmod 600 "$domain/passwd"
-		setfacl -b \
-			-m u:Debian-exim:r \
-			-m u:dovecot:r \
-			"$domain/passwd"
+		setfacl -b "$domain/passwd.in"
 	fi
 
-	if test -f "$domain/aliases"; then
+	if [[ -f $domain/passwd ]]; then
+		chown root:dovecot "$domain/passwd"
+		chmod 640 "$domain/passwd"
+		setfacl -b "$domain/passwd"
+	fi
+
+	if [[ -f $domain/aliases ]]; then
 		chown root:Debian-exim "$domain/aliases"
 		chmod 640 "$domain/aliases"
+		setfacl -b "$domain/aliases"
 	fi
 
-	if test -d "$domain/users"; then
-		chown root:root "$domain/users"
-		chmod 700 "$domain/users"
-		setfacl -b \
-			-m u:mailstorage:rwx \
-			"$domain/users"
+	if [[ -d $domain/users ]]; then
+		chown root:mailstorage "$domain/users"
+		chmod 770 "$domain/users"
+		setfacl -R -b "$domain/users"
 
 		find "$domain/users" -mindepth 1 -maxdepth 1 -type d | while read user; do
 			chown -R mailstorage:mailstorage "$user"
+			chmod 700 "$user"
+
 			find "$user" -type d -exec chmod 700 {} +
 			find "$user" -type f -exec chmod 600 {} +
 		done
