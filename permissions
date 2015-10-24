@@ -8,7 +8,6 @@ chown root:root "$mailroot"
 chmod 700 "$mailroot"
 setfacl -b \
 	-m u:Debian-exim:rx \
-	-m u:dovecot:x \
 	-m u:mailstorage:x \
 	"$mailroot"
 
@@ -17,7 +16,6 @@ find "$mailroot" -mindepth 1 -maxdepth 1 -type d | while read domain; do
 	chmod 700 "$domain"
 	setfacl -b \
 		-m u:Debian-exim:x \
-		-m u:dovecot:x \
 		-m u:mailstorage:x \
 		"$domain"
 
@@ -31,12 +29,6 @@ find "$mailroot" -mindepth 1 -maxdepth 1 -type d | while read domain; do
 		chown root:root "$domain/passwd.in"
 		chmod 600 "$domain/passwd.in"
 		setfacl -b "$domain/passwd.in"
-	fi
-
-	if [[ -f $domain/passwd ]]; then
-		chown root:dovecot "$domain/passwd"
-		chmod 640 "$domain/passwd"
-		setfacl -b "$domain/passwd"
 	fi
 
 	if [[ -f $domain/aliases ]]; then

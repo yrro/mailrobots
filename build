@@ -4,8 +4,8 @@ from __future__ import print_function
 
 import ConfigParser as configparser
 import glob
+import grp
 import os
-import posix1e
 import tempfile
 import sys
 
@@ -48,18 +48,10 @@ for p in glob.glob (os.path.join (os.path.dirname (__file__), 'domains', '*', 'p
 		raise
 
 fix_perms = False
-
-for dname, domain in users.items ():
-	pfname = os.path.join (os.path.dirname (__file__), 'domains', dname, 'passwd')
-	if os.path.exists (pfname):
-		pfacl = posix1e.ACL (file=pfname)
-	else:
-		print ('Creating {0}'.format (pfname), file=sys.stderr)
-		fix_perms = True
-		pfacl = None
-
-	tpf = tempfile.NamedTemporaryFile (mode='w', dir=os.path.dirname (pfname), delete=False)
-	try:
+pfname = os.path.join (os.path.dirname (__file__), 'passwd')
+tpf = tempfile.NamedTemporaryFile (mode='w', dir=os.path.dirname (pfname), delete=False)
+try:
+	for dname, domain in users.items ():
 		for uname, user in domain.items ():
 			extra = []
 			extra.append ('userdb_mail=maildir:~/Maildir')
@@ -70,7 +62,7 @@ for dname, domain in users.items ():
 
 			extra = ' '.join (extra)
 			mailhome = os.path.abspath (os.path.join (os.path.dirname (__file__), 'domains', dname, 'users', uname))
-			print ('{0}:{1}::::{2}::{3}'.format (uname, user['password'], mailhome, extra), file=tpf)
+			print ('{0}@{1}:{2}::::{3}::{4}'.format (uname, dname, user['password'], mailhome, extra), file=tpf)
 
 			maildir = os.path.join (mailhome, 'Maildir')
 			if not os.path.exists (maildir):
@@ -80,14 +72,15 @@ for dname, domain in users.items ():
 				os.mkdir (os.path.join (maildir, 'cur'), 0700)
 				os.mkdir (os.path.join (maildir, 'new'), 0700)
 				os.mkdir (os.path.join (maildir, 'tmp'), 0700)
-		if pfacl:
-			pfacl.applyto (tpf.fileno ())
-		tpf.close ()
-	except:
-		os.unlink (tpf.name)
-		raise
-	else:
-		os.rename (tpf.name, pfname)
+
+	os.fchown (tpf.fileno (), 0, grp.getgrnam ('dovecot').gr_gid)
+	os.fchmod (tpf.fileno (), 0640)
+	tpf.close ()
+except:
+	os.unlink (tpf.name)
+	raise
+else:
+	os.rename (tpf.name, pfname)
 
 if fix_perms:
 	print ('Run the permissions script to fix up permissions.', file=sys.stderr)
