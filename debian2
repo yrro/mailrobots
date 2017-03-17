@@ -1,0 +1,82 @@
+#!/bin/bash
+
+# Minimal setup of the testbed system, without the unnecessary stuff in the
+# lxd-debian template.
+
+set -eu
+
+MIRROR=http://deb.debian.org/debian
+SECURITY_MIRROR=http://security.debian.org/
+#DEBROBOTS_MIRROR=
+
+function parse_options {
+    local options
+    options=$(getopt -o '' -l path:,name:,rootfs: -- "$@")
+    eval set -- "$options"
+
+    while true; do
+        case "$1" in
+            --path) path="$2"; shift 2;;
+            --name) name="$2"; shift 2;;
+            --rootfs) rootfs="$2"; shift 2;;
+            --) shift 1; break;;
+            *) break;;
+        esac
+    done
+
+    local x
+    for x in path name rootfs; do
+        if [[ -z ${!x:-} ]]; then
+            echo "--$x was unset" >&2
+            exit 1
+        fi
+    done
+}
+
+parse_options "$@"
+
+debootstrap \
+    --merged-usr \
+    --variant=minbase \
+    jessie "$rootfs" "$MIRROR"
+
+rm "$rootfs/etc/fstab"
+rm "$rootfs/etc/hostname"
+rm "$rootfs/etc/machine-id"
+
+install -D -m 0644 -T locale.conf "$rootfs/etc/default/locale"
+
+cat > "$rootfs/etc/apt/sources.list.d/local.list" <<- EOF
+	deb $SECURITY_MIRROR jessie/updates main
+	deb $MIRROR jessie-updates main
+	deb $MIRROR jessie-backports main
+EOF
+
+(
+    trap "rm '$rootfs/usr/sbin/policy-rc.d'" EXIT
+    install -D -m 0755 -T policy-rc.d "$rootfs/usr/sbin/policy-rc.d"
+    (
+        trap "rm '$rootfs/etc/resolv.conf'" EXIT
+        cp -T /etc/resolv.conf "$rootfs/etc/resolv.conf"
+        chroot "$rootfs" apt-get update
+        chroot "$rootfs" apt-get install -y --no-install-recommends -t jessie-backports dbus libnss-resolve libpam-systemd netbase systemd
+        chroot "$rootfs" apt-get clean
+    )
+)
+
+sed -i -e 's/^hosts:.*/hosts: files resolve [!UNAVAIL=return]/' "$rootfs/etc/nsswitch.conf"
+ln -srT "$rootfs/lib/systemd/resolv.conf" "$rootfs/etc/resolv.conf"
+chroot "$rootfs" systemctl enable systemd-networkd.service
+
+install -D -m 0644 -T console-autologin.conf "$rootfs/etc/systemd/system/console-getty.service.d/autologin.conf"
+install -D -m 0644 -T pts-autologin.conf "$rootfs/etc/systemd/system/container-getty@.service.d/autologin.conf"
+
+config="$path/config"
+cat >> "$config" <<- EOF
+
+	lxc.network.type = veth
+	lxc.network.name = host0
+	lxc.network.veth.pair = ve-$(od -v -A n -t x1 -N 2 < /dev/urandom | tr -d ' ')
+
+	lxc.utsname = $name
+EOF
