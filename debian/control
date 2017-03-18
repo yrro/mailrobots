@@ -1,0 +1,21 @@
+Source: mailrobots
+Maintainer: Sam Morris <sam@robots.org.uk>
+Section: mail
+Priority: optional
+Build-Depends:
+ debhelper (>= 10),
+
+Package: mailrobots
+Architecture: all
+Depends:
+# clamav-daemon,
+ exim4-daemon-heavy,
+# dovecot-antispam,
+# dovecot-imapd,
+# dovecot-lmtpd,
+# dovecot-managesieved,
+# dovecot-sieve,
+# mailman,
+# spamassassin,
+ ${misc:Depends},
+Description: robots.org.uk mail system

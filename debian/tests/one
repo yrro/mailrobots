@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -eu
+
+echo "$AUTOPKGTEST_TMP"
