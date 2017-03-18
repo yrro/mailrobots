@@ -1,0 +1,88 @@
+#!/usr/bin/python
+
+from __future__ import print_function
+
+import ConfigParser as configparser
+import glob
+import grp
+import os
+import tempfile
+import sys
+
+users = {}
+
+for p in glob.glob (os.path.join (os.path.dirname (__file__), 'domains', '*', 'passwd.in')):
+	if not os.path.isfile (p):
+		continue
+
+	domain = os.path.basename (os.path.dirname (p))
+	users[domain] = {}
+
+	try:
+		c = configparser.RawConfigParser ()
+		c.read (p)
+		for sec in c.sections ():
+			t, n = sec.split (':')
+			obj = {}
+			if t == 'user':
+				if c.has_option (sec, 'password'):
+					obj['password'] = c.get (sec, 'password')
+				else:
+					obj['password'] = '!'
+
+				if c.has_option (sec, 'quota'):
+					obj['quota'] = c.get (sec, 'quota')
+				elif c.has_section ('default:user') and c.has_option ('default:user', 'quota'):
+					obj['quota'] = c.get ('default:user', 'quota')
+
+				if c.has_option (sec, 'k5principals'):
+					obj['k5principals'] = c.get (sec, 'k5principals').split (' ')
+
+				users[domain][n] = obj
+			elif t == 'default':
+				pass
+			else:
+				raise Exception ('Unknown object type: {0}'.format (t))
+	except:
+		print ('Error in "{0}":'.format (p), file=sys.stderr)
+		raise
+
+fix_perms = False
+pfname = os.path.join (os.path.dirname (__file__), 'passwd')
+tpf = tempfile.NamedTemporaryFile (mode='w', dir=os.path.dirname (pfname), delete=False)
+try:
+	for dname, domain in users.items ():
+		for uname, user in domain.items ():
+			extra = []
+			extra.append ('userdb_mail=maildir:~/Maildir')
+			if 'quota' in user:
+				extra.append ('userdb_quota_rule=*:bytes={0}'.format (user['quota']))
+			if 'k5principals' in user:
+				extra.append ('k5principals={0}'.format (','.join (user['k5principals'])))
+
+			extra = ' '.join (extra)
+			mailhome = os.path.abspath (os.path.join (os.path.dirname (__file__), 'domains', dname, 'users', uname))
+			print ('{0}@{1}:{2}::::{3}::{4}'.format (uname, dname, user['password'], mailhome, extra), file=tpf)
+
+			maildir = os.path.join (mailhome, 'Maildir')
+			if not os.path.exists (maildir):
+				print ('Creating {0}'.format (maildir), file=sys.stderr)
+				fix_perms = True
+				os.makedirs (maildir, 0700)
+				os.mkdir (os.path.join (maildir, 'cur'), 0700)
+				os.mkdir (os.path.join (maildir, 'new'), 0700)
+				os.mkdir (os.path.join (maildir, 'tmp'), 0700)
+
+	os.fchown (tpf.fileno (), 0, grp.getgrnam ('dovecot').gr_gid)
+	os.fchmod (tpf.fileno (), 0640)
+	tpf.close ()
+except:
+	os.unlink (tpf.name)
+	raise
+else:
+	os.rename (tpf.name, pfname)
+
+if fix_perms:
+	print ('Run the permissions script to fix up permissions.', file=sys.stderr)
+
+# vim: ts=4 sts=4 sw=4 noet

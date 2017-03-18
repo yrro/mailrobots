@@ -1,0 +1,55 @@
+#!/bin/bash
+
+set -eu
+
+mailroot=/srv/mail/domains
+
+chown root:root "$mailroot"
+chmod 700 "$mailroot"
+setfacl -b \
+	-m u:Debian-exim:rx \
+	-m u:mailstorage:x \
+	"$mailroot"
+
+find "$mailroot" -mindepth 1 -maxdepth 1 -type d | while read domain; do
+	chown root:root "$domain"
+	chmod 700 "$domain"
+	setfacl -b \
+		-m u:Debian-exim:x \
+		-m u:mailstorage:x \
+		"$domain"
+
+	if [[ -f $domain/freeze ]]; then
+		chown root:root "$domain/freeze"
+		chmod 644 "$domain/freeze"
+		setfacl -b "$domain/freeze"
+	fi
+
+	if [[ -f $domain/passwd.in ]]; then
+		chown root:root "$domain/passwd.in"
+		chmod 600 "$domain/passwd.in"
+		setfacl -b "$domain/passwd.in"
+	fi
+
+	if [[ -f $domain/aliases ]]; then
+		chown root:Debian-exim "$domain/aliases"
+		chmod 640 "$domain/aliases"
+		setfacl -b "$domain/aliases"
+	fi
+
+	if [[ -d $domain/users ]]; then
+		chown root:mailstorage "$domain/users"
+		chmod 770 "$domain/users"
+		setfacl -R -b "$domain/users"
+
+		find "$domain/users" -mindepth 1 -maxdepth 1 -type d | while read user; do
+			chown -R mailstorage:mailstorage "$user"
+			chmod 700 "$user"
+
+			find "$user" -type d -exec chmod 700 {} +
+			find "$user" -type f -exec chmod 600 {} +
+		done
+	fi
+done
+
+# vim: ts=4 sts=4 sw=4 noet
