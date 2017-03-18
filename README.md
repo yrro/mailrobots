@@ -12,4 +12,6 @@ autopkgtest testbed
 Until [autopkgtest gains support for systemd-nspawn](https://bugs.debian.org/809443),
 LXC looks like the next best thing.
 
-    $ lxc-create -B dir -n mailrobots -t "$PWD/debian2"
+Create the testbed:
+
+    $ (cd debian/tests/testbed && lxc-create -B dir -n mailrobots -f lxc.conf -t "$PWD/debian2"
