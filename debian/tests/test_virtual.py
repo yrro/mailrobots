@@ -132,3 +132,14 @@ def test_special_aliases(address, expected, user_mailbox, print_journal):
     print_logs()
     print_journal()
     assert expected in o
+
+def test_save_to_detail_mailbox(user_mailbox, print_logs, print_journal):
+    sendmail('blah', To='account@test.example', Subject='create INBOX')
+    mb = user_mailbox()
+    mb_detail = mb.add_folder('detail')
+    subprocess.check_call(['chown', '-R', 'mailstorage:mailstorage', '/srv/mail/domains/test.example/users/account/Maildir/.detail'])
+    sendmail('blah', To='account+detail@test.example', Subject='deliver to detail mailbox')
+    time.sleep(0.25)
+    print_logs()
+    print_journal()
+    assert any(lambda msg: msg['Subject'] == 'deliver to detail mailbox' for msg in mb_detail)

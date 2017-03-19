@@ -19,7 +19,7 @@ userdb {
     args = /srv/mail/passwd
 }
 
-#lmtp_save_to_detail_mailbox = yes
+lmtp_save_to_detail_mailbox = yes
 
 plugin {
     recipient_delimiter = +-
