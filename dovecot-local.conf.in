@@ -1,0 +1,35 @@
+# These are overridden by individual account lookups
+mail_uid = mailstorage
+mail_gid = mailstorage
+
+# These aren't strictly necessary, since our password database shouldn't be
+# returning uid/gid information
+first_valid_uid = @first_valid_uid@
+last_valid_uid = @last_valid_uid@
+first_valid_gid = @first_valid_uid@
+last_valid_uid = @last_valid_uid@
+
+passdb {
+    driver = passwd-file
+    args = scheme=crypt /srv/mail/passwd
+}
+
+userdb {
+    driver = passwd-file
+    args = /srv/mail/passwd
+}
+
+#lmtp_save_to_detail_mailbox = yes
+
+plugin {
+    recipient_delimiter = +-
+}
+
+#service auth {
+#    unix_listener smtp-auth {
+#        mode = 0660
+#        group = Debian-exim
+#    }
+#}
+
+postmaster_address = postmaster@@mailname@

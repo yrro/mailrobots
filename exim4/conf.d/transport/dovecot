@@ -1,0 +1,21 @@
+dovecot_verify:
+    debug_print = "T: dovecot_verify for $local_part@$domain"
+
+    driver = smtp
+    protocol = lmtp
+    # We can't use 'localhost' here because the given hostnames are looked up
+    # directly in the DNS, rather than going via getaddrinfo(3)
+    hosts = ::::1 : 127.0.0.1
+    allow_localhost
+    port = 24
+
+dovecot:
+    debug_print = "T: dovecot for $local_part@$domain"
+
+    driver = lmtp
+    # per-user spamassassin scan
+    #transport_filter = /usr/bin/spamc -s SPAM_MAX_SIZE -x -u $local_part@$domain
+
+    socket = /run/dovecot/lmtp
+
+# vim: ft=exim

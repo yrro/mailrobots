@@ -9,9 +9,11 @@ import os
 import tempfile
 import sys
 
+mailroot = '/srv/mail'
+
 users = {}
 
-for p in glob.glob (os.path.join (os.path.dirname (__file__), 'domains', '*', 'passwd.in')):
+for p in glob.glob (os.path.join (mailroot, 'domains', '*', 'passwd.in')):
 	if not os.path.isfile (p):
 		continue
 
@@ -48,7 +50,7 @@ for p in glob.glob (os.path.join (os.path.dirname (__file__), 'domains', '*', 'p
 		raise
 
 fix_perms = False
-pfname = os.path.join (os.path.dirname (__file__), 'passwd')
+pfname = os.path.join (mailroot, 'passwd')
 tpf = tempfile.NamedTemporaryFile (mode='w', dir=os.path.dirname (pfname), delete=False)
 try:
 	for dname, domain in users.items ():
@@ -61,7 +63,7 @@ try:
 				extra.append ('k5principals={0}'.format (','.join (user['k5principals'])))
 
 			extra = ' '.join (extra)
-			mailhome = os.path.abspath (os.path.join (os.path.dirname (__file__), 'domains', dname, 'users', uname))
+			mailhome = os.path.abspath (os.path.join (mailroot, 'domains', dname, 'users', uname))
 			print ('{0}@{1}:{2}::::{3}::{4}'.format (uname, dname, user['password'], mailhome, extra), file=tpf)
 
 			maildir = os.path.join (mailhome, 'Maildir')

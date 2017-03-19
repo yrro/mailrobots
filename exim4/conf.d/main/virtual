@@ -1,0 +1,8 @@
+# Aliases taken from exim4-config's default /etc/aliases file which may not be used by virtual domains
+localpartlist virtual_local_parts_ignore = mailer-daemon : postmaster : abuse : noc : security
+
+#localpartlist virtual_local_part_suffix = +* : -*
+
+VIRTUAL_MAIL_DOMAINS = /srv/mail/domains
+
+domainlist virtual_domains = dsearch;VIRTUAL_MAIL_DOMAINS

@@ -12,10 +12,11 @@ Depends:
  exim4-daemon-heavy,
 # dovecot-antispam,
 # dovecot-imapd,
-# dovecot-lmtpd,
+ dovecot-lmtpd,
 # dovecot-managesieved,
-# dovecot-sieve,
+ dovecot-sieve,
 # mailman,
+ python,
 # spamassassin,
  ${misc:Depends},
 Description: robots.org.uk mail system

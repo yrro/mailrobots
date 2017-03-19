@@ -1,0 +1,52 @@
+virtual_alias:
+    debug_print = "R: virtual_alias for $local_part@$domain"
+
+    local_part_suffix = virtual_local_part_suffix
+    local_part_suffix_optional
+    domains = +virtual_domains
+    local_parts = ! +virtual_local_parts_ignore
+    require_files = VIRTUAL_MAIL_DOMAINS/$domain/aliases
+
+    driver = redirect
+    data = ${lookup{$local_part}nwildlsearch{VIRTUAL_MAIL_DOMAINS/$domain/aliases}}
+
+    allow_defer
+    allow_fail
+    allow_filter = false
+    allow_freeze
+    forbid_file
+    forbid_include
+    forbid_pipe
+    qualify_preserve_domain
+
+#virtual_account_verify:
+#    debug_print = "R: virtual_account_verify for $local_part$local_part_suffix@$domain"
+#
+#    verify_only
+#    verify_recipient
+##    no_verify_sender
+#
+#    no_more
+#
+#    local_part_suffix = virtual_local_part_suffix
+#    local_part_suffix_optional
+#    domains = +virtual_domains
+#    local_parts = ! +virtual_local_parts_ignore
+#
+#    driver = accept
+#    transport = dovecot_verify
+
+virtual_account:
+    debug_print = "R: virtual_account for $local_part$local_part_suffix@$domain"
+
+    no_more
+
+    local_part_suffix = virtual_local_part_suffix
+    local_part_suffix_optional
+    domains = +virtual_domains
+    local_parts = ! +virtual_local_parts_ignore
+
+    driver = accept
+    transport = dovecot
+
+# vim: ft=exim

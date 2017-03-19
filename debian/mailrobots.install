@@ -1,2 +1,6 @@
-build /usr/lib/mailrobots
-permissions /usr/lib/mailrobots
+build                  /usr/lib/mailrobots
+dovecot-local.conf.in  /usr/lib/mailrobots
+permissions            /usr/lib/mailrobots
+update-exim4.conf.conf /usr/lib/mailrobots
+
+exim4 /etc

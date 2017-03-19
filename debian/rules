@@ -3,17 +3,13 @@
 %:
 	dh $@ --without autoreconf
 
+override_dh_auto_clean:
+
 override dh_auto_configure:
-	:
 
 override_dh_auto_build:
-	:
 
-override_dh_auto_configure:
-	:
+override_dh_auto_test:
 
 override_dh_auto_install:
 	install -D -m 0644 -T debian/mailrobots.sysusers debian/mailrobots/usr/lib/sysusers.d/mailrobots.conf
-
-override_dh_auto_test:
-	:

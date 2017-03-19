@@ -1,5 +1,8 @@
-Tests:
- one,
+Test-Command: python3 -m pytest debian/tests/test.py
+Depends:
+ @,
+ python3,
+ python3-pytest,
 Restrictions:
  isolation-container,
  needs-root,
