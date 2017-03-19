@@ -1,4 +1,4 @@
-Test-Command: python3 -m pytest debian/tests/test.py
+Test-Command: python3 -m pytest
 Depends:
  @,
  python3,

@@ -6,8 +6,8 @@ mail_gid = mailstorage
 # returning uid/gid information
 first_valid_uid = @first_valid_uid@
 last_valid_uid = @last_valid_uid@
-first_valid_gid = @first_valid_uid@
-last_valid_uid = @last_valid_uid@
+first_valid_gid = @first_valid_gid@
+last_valid_gid = @last_valid_gid@
 
 passdb {
     driver = passwd-file

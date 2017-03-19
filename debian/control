@@ -8,6 +8,7 @@ Build-Depends:
 Package: mailrobots
 Architecture: all
 Depends:
+ acl,
 # clamav-daemon,
  exim4-daemon-heavy,
 # dovecot-antispam,
