@@ -58,25 +58,27 @@ def print_journal():
 
 @yield_fixture
 def user_mailbox(request):
-    os.mkdir('/srv/mail/domains/test.example', mode=0o700)
+    try:
+        os.mkdir('/srv/mail/domains/test.example', mode=0o700)
 
-    aliases = open('/srv/mail/domains/test.example/aliases', 'w')
-    aliases.write(request.module.aliases_text)
-    aliases.close()
+        aliases = open('/srv/mail/domains/test.example/aliases', 'w')
+        aliases.write(request.module.aliases_text)
+        aliases.close()
 
-    passwd_in = open('/srv/mail/domains/test.example/passwd.in', 'w')
-    passwd_in.write(request.module.passwd_in_text)
-    passwd_in.close()
+        passwd_in = open('/srv/mail/domains/test.example/passwd.in', 'w')
+        passwd_in.write(request.module.passwd_in_text)
+        passwd_in.close()
 
-    subprocess.check_call(['/usr/lib/mailrobots/build'], cwd='/srv/mail')
-    subprocess.check_call(['/usr/lib/mailrobots/permissions'], cwd='/srv/mail')
+        subprocess.check_call(['/usr/lib/mailrobots/build'], cwd='/srv/mail')
+        subprocess.check_call(['/usr/lib/mailrobots/permissions'], cwd='/srv/mail')
 
-    yield
+        yield
 
-    if os.path.exists('/srv/mail/domains/test.example'):
-        shutil.rmtree('/srv/mail/domains/test.example')
-    if os.path.exists('/srv/mail/passwd'):
-        os.remove('/srv/mail/passwd')
+    finally:
+        if os.path.exists('/srv/mail/domains/test.example'):
+            shutil.rmtree('/srv/mail/domains/test.example')
+        if os.path.exists('/srv/mail/passwd'):
+            os.remove('/srv/mail/passwd')
 
 @yield_fixture
 def imap(user_mailbox): # XXX use usesfixtures
