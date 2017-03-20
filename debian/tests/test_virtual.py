@@ -1,14 +1,17 @@
+import email.message
 import functools
-import mailbox
+import imaplib
 import os
 import shutil
+import smtplib
+import socket
 import subprocess
 import sys
 import time
 
 from pytest import *
 
-#from .lib import *
+imaplib.Debug=4
 
 aliases_text = '''\
 alias:     account
@@ -34,16 +37,13 @@ logs = [
     '/var/log/exim4/paniclog',
 ]
 
-def sendmail(body, **kwargs):
-    with subprocess.Popen(['/usr/sbin/sendmail', '-ti'], stdin=subprocess.PIPE) as p:
-        msg = []
-        for k, v in kwargs.items():
-            msg.append(k.encode('ascii') + b': ' + v.encode('ascii'))
-        msg.append(b'')
-        msg.append(body.encode('ascii'))
-        p.communicate(b'\n'.join(msg))
-        if p.wait() != 0:
-            raise Exception('sendmail failed')
+def sendmail(smtp, body='test message', Sender='nobody@' + socket.gethostname(), **kwargs):
+    msg = email.message.Message()
+    msg['Sender'] = Sender
+    for k, v in kwargs.items():
+        msg[k] = v
+    msg.set_payload(body)
+    smtp.send_message(msg)
 
 @yield_fixture
 def print_logs():
@@ -97,12 +97,26 @@ def user_mailbox():
     subprocess.check_call(['/usr/lib/mailrobots/build'], cwd='/srv/mail')
     subprocess.check_call(['/usr/lib/mailrobots/permissions'], cwd='/srv/mail')
 
-    # The mailbox isn't actaully created until mail is sent to it, so hand a
-    # mailbox factory to the test
-    yield functools.partial(mailbox.Maildir, '/srv/mail/domains/test.example/users/account/Maildir', create=False)
+    smtp = smtplib.SMTP('localhost', 25)
+    smtp.set_debuglevel(1)
+    imap = imaplib.IMAP4('localhost')
+    imap.login('account@test.example', 'password')
+    yield smtp, imap
 
-    shutil.rmtree('/srv/mail/domains/test.example')
-    os.remove('/srv/mail/passwd')
+    try:
+        smtp.quit()
+    except Exception:
+        pass
+
+    try:
+        imap.logout()
+    except Exception:
+        pass
+
+    if os.path.exists('/srv/mail/domains/test.example'):
+        shutil.rmtree('/srv/mail/domains/test.example')
+    if os.path.exists('/srv/mail/passwd'):
+        os.remove('/srv/mail/passwd')
 
 @mark.parametrize('address', [
     'alias',
@@ -112,11 +126,13 @@ def user_mailbox():
     'account+foo',
 ])
 def test_delivery(address, user_mailbox, print_logs, print_journal):
-    sendmail('blah', To=address+'@test.example', Subject=address+' test')
+    smtp, imap = user_mailbox
+    sendmail(smtp, To=address+'@test.example', Subject=address+' test')
     time.sleep(0.25)
+    imap.select()
     print_logs()
     print_journal()
-    assert any(lambda msg: msg['Subject'] == address+' test' for msg in user_mailbox())
+    assert ('OK', [b'1']) == imap.uid('search', 'subject "{} test"'.format(address))
 
 @mark.parametrize('address,expected', [
     ('defer',     b'cannot be resolved at this time: temporary failure'),
@@ -134,12 +150,11 @@ def test_special_aliases(address, expected, user_mailbox, print_journal):
     assert expected in o
 
 def test_save_to_detail_mailbox(user_mailbox, print_logs, print_journal):
-    sendmail('blah', To='account@test.example', Subject='create INBOX')
-    mb = user_mailbox()
-    mb_detail = mb.add_folder('detail')
-    subprocess.check_call(['chown', '-R', 'mailstorage:mailstorage', '/srv/mail/domains/test.example/users/account/Maildir/.detail'])
-    sendmail('blah', To='account+detail@test.example', Subject='deliver to detail mailbox')
+    smtp, imap = user_mailbox
+    imap.create('detail')
+    sendmail(smtp, To='account+detail@test.example', Subject='deliver to detail mailbox')
     time.sleep(0.25)
+    imap.select('detail')
     print_logs()
     print_journal()
-    assert any(lambda msg: msg['Subject'] == 'deliver to detail mailbox' for msg in mb_detail)
+    assert ('OK', [b'1']) == imap.uid('search', 'subject "deliver to detail mailbox"')

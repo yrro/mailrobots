@@ -12,7 +12,7 @@ Depends:
 # clamav-daemon,
  exim4-daemon-heavy,
 # dovecot-antispam,
-# dovecot-imapd,
+ dovecot-imapd,
  dovecot-lmtpd,
 # dovecot-managesieved,
  dovecot-sieve,
