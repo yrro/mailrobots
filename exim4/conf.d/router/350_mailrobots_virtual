@@ -27,7 +27,6 @@ virtual_alias:
     allow_defer
     allow_fail
     allow_filter = false
-    allow_freeze
     forbid_file
     forbid_include
     forbid_pipe

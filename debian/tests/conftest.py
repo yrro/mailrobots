@@ -33,7 +33,7 @@ def print_logs():
 def print_file(path):
     print(' ╭┤', path, sep='')
     try:
-        for line in open(path).readlines():
+        for line in open(path):
             print(' │', line, end='')
     except OSError as e:
         print(' ╰┄', e, sep='')
@@ -54,6 +54,7 @@ def print_journal():
         if cursor is not None:
             with subprocess.Popen(['journalctl', '--no-hostname', '--after-cursor=' + cursor]) as p:
                 p.wait()
+            print('-- Logs end. --')
     yield f
 
 passwd_in_text = '''\

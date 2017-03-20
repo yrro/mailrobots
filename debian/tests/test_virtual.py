@@ -16,43 +16,56 @@ pipe:      |should-be-forbidden
 @mark.parametrize('address', [
     'alias',
     'account',
-    'account-foo', # XXX wtf
+    'account-foo',
     'account+foo',
 ])
 def test_delivery(address, sendmail, imap, print_logs, print_journal):
-    sendmail(To=address+'@test.example', Subject=address+' test')
-    imap.select()
-    print_logs()
-    print_journal()
-    assert ('OK', [b'1']) == imap.uid('search', 'subject "{} test"'.format(address))
-
-def test_non_existing_account(sendmail, print_logs, print_journal):
-    with raises(smtplib.SMTPRecipientsRefused):
-        print(sendmail(To='nonexisting@test.example'))
+    try:
+        sendmail(To=address+'@test.example', Subject=address+' test')
+        imap.select()
+        assert ('OK', [b'1']) == imap.uid('search', 'subject "{} test"'.format(address))
+    finally:
         print_logs()
         print_journal()
 
-@mark.usefixtures('user_mailbox')
-@mark.parametrize('address,expected', [
-    ('defer',     b'cannot be resolved at this time: temporary failure'),
-    ('fail',      b'undeliverable: permanent failure'),
-    ('blackhole', b'is discarded'),
-    ('file',      b'file_transport unset in virtual_alias router'),
-    ('filter',    b'filtering not enabled'),
-    ('pipe',      b'pipe_transport unset in virtual_alias router'),
+@mark.parametrize('address,logmessage', [
+    ('blackhole', ' => :blackhole: <blackhole@test.example> R=virtual_alias\n'),
+    ('file', ' <file@test.example> R=virtual_alias: delivery to file forbidden\n'),
+    ('pipe', ' <pipe@test.example> R=virtual_alias: delivery to pipe forbidden\n'),
 ])
-def test_special_aliases(address, expected, print_logs, print_journal):
-    with subprocess.Popen(['exim', '-bt', address+'@test.example'], stdout=subprocess.PIPE) as p:
-        o, e = p.communicate()
-    print_logs()
-    print_journal()
-    assert expected in o
+def test_special_aliases_accept(address, logmessage, sendmail, imap, print_logs, print_journal):
+    try:
+        sendmail(To=address+'@test.example')
+        imap.select()
+        assert ('OK', [b'']) == imap.uid('search', 'ALL')
+        with open('/var/log/exim4/mainlog') as m:
+            assert any(line.endswith(logmessage) for line in m)
+    finally:
+        print_logs()
+        print_journal()
+
+@mark.parametrize('address,code', [
+    ('defer',       451),
+    ('fail',        550),
+    ('filter',      451),
+    ('nonexistent', 550),
+])
+def test_special_aliases_reject(address, code, sendmail, print_logs, print_journal):
+    try:
+        with raises(smtplib.SMTPRecipientsRefused) as excinfo:
+            sendmail(To=address+'@test.example')
+        assert code == excinfo.value.recipients[address+'@test.example'][0]
+    finally:
+        print_logs()
+        print_journal()
 
 @mark.xfail(reason="haven't got this working yet", strict=True)
 def test_save_to_detail_mailbox(imap, sendmail, print_logs, print_journal):
-    imap.create('detail')
-    sendmail(To='account+detail@test.example', Subject='deliver to detail mailbox')
-    imap.select('detail')
-    print_logs()
-    print_journal()
-    assert ('OK', [b'1']) == imap.uid('search', 'subject "deliver to detail mailbox"')
+    try:
+        imap.create('detail')
+        sendmail(To='account+detail@test.example', Subject='deliver to detail mailbox')
+        imap.select('detail')
+        assert ('OK', [b'1']) == imap.uid('search', 'subject "deliver to detail mailbox"')
+    finally:
+        print_logs()
+        print_journal()
