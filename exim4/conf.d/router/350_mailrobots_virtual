@@ -1,22 +1,3 @@
-virtual_alias:
-    debug_print = "R: virtual_alias for $local_part@$domain"
-
-    domains = +virtual_domains
-    local_parts = ! +virtual_local_parts_ignore
-    require_files = VIRTUAL_MAIL_DOMAINS/$domain/aliases
-
-    driver = redirect
-    data = ${lookup{$local_part}nwildlsearch{VIRTUAL_MAIL_DOMAINS/$domain/aliases}}
-
-    allow_defer
-    allow_fail
-    allow_filter = false
-    allow_freeze
-    forbid_file
-    forbid_include
-    forbid_pipe
-    qualify_preserve_domain
-
 virtual_account:
     debug_print = "R: virtual_account for $local_part@$domain"
 
@@ -26,11 +7,30 @@ virtual_account:
 
     local_part_suffix_optional
 
-    no_more
-
     address_data = ${lookup {$local_part@$domain} lsearch {/srv/mail/passwd} {} fail}
 
     driver = accept
     transport = dovecot
+
+virtual_alias:
+    debug_print = "R: virtual_alias for $local_part@$domain"
+
+    domains = +virtual_domains
+    local_parts = ! +virtual_local_parts_ignore
+    require_files = VIRTUAL_MAIL_DOMAINS/$domain/aliases
+
+    no_more
+
+    driver = redirect
+    data = ${lookup{$local_part}lsearch*{VIRTUAL_MAIL_DOMAINS/$domain/aliases}}
+
+    allow_defer
+    allow_fail
+    allow_filter = false
+    allow_freeze
+    forbid_file
+    forbid_include
+    forbid_pipe
+    qualify_preserve_domain
 
 # vim: ft=exim

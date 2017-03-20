@@ -56,17 +56,23 @@ def print_journal():
                 p.wait()
     yield f
 
+passwd_in_text = '''\
+[user:account]
+password = $6$CE0MQhhj0wGYjq2$jMtQd5En/oYHT7Uwbeb/IGuf1K9iWKIAUhHAIXVcwXJifC7gxT4al0BU0UE3aKtUiFXlYkC7cNW2ypohRmfz0.
+quota = 100KB
+'''
+
 @yield_fixture
 def user_mailbox(request):
     try:
         os.mkdir('/srv/mail/domains/test.example', mode=0o700)
 
         aliases = open('/srv/mail/domains/test.example/aliases', 'w')
-        aliases.write(request.module.aliases_text)
+        aliases.write(getattr(request.module, 'aliases_text', ''))
         aliases.close()
 
         passwd_in = open('/srv/mail/domains/test.example/passwd.in', 'w')
-        passwd_in.write(request.module.passwd_in_text)
+        passwd_in.write(getattr(request.module, 'passwd_in_text', passwd_in_text))
         passwd_in.close()
 
         subprocess.check_call(['/usr/lib/mailrobots/build'], cwd='/srv/mail')
@@ -80,10 +86,14 @@ def user_mailbox(request):
         if os.path.exists('/srv/mail/passwd'):
             os.remove('/srv/mail/passwd')
 
+@fixture
+def imap_account():
+    return 'account@test.example'
+
 @yield_fixture
-def imap(user_mailbox): # XXX use usesfixtures
+def imap(imap_account, user_mailbox): # XXX use usesfixtures
     imap = imaplib.IMAP4('localhost')
-    imap.login('account@test.example', 'password')
+    imap.login(imap_account, 'password')
     yield imap
     try:
         imap.logout()

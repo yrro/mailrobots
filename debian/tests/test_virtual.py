@@ -5,7 +5,6 @@ from pytest import *
 
 aliases_text = '''\
 alias:     account
-^pattern:  account
 defer:     :defer: temporary failure
 fail:      :fail: permanent failure
 blackhole: :blackhole: drop message
@@ -14,15 +13,8 @@ filter:    # Exim filter
 pipe:      |should-be-forbidden
 '''
 
-passwd_in_text = '''\
-[user:account]
-password = $6$CE0MQhhj0wGYjq2$jMtQd5En/oYHT7Uwbeb/IGuf1K9iWKIAUhHAIXVcwXJifC7gxT4al0BU0UE3aKtUiFXlYkC7cNW2ypohRmfz0.
-quota = 100KB
-'''
-
 @mark.parametrize('address', [
     'alias',
-    'pattern12345',
     'account',
     'account-foo', # XXX wtf
     'account+foo',
