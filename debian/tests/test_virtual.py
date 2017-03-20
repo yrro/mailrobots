@@ -48,7 +48,7 @@ def test_special_aliases(address, expected, print_logs, print_journal):
     print_journal()
     assert expected in o
 
-@mark.xfail(reason="haven't got this working yet")
+@mark.xfail(reason="haven't got this working yet", strict=True)
 def test_save_to_detail_mailbox(imap, sendmail, print_logs, print_journal):
     imap.create('detail')
     sendmail(To='account+detail@test.example', Subject='deliver to detail mailbox')
