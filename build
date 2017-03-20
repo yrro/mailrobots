@@ -6,8 +6,9 @@ import ConfigParser as configparser
 import glob
 import grp
 import os
-import tempfile
+import posix1e
 import sys
+import tempfile
 
 mailroot = '/srv/mail'
 
@@ -75,8 +76,8 @@ try:
 				os.mkdir (os.path.join (maildir, 'new'), 0700)
 				os.mkdir (os.path.join (maildir, 'tmp'), 0700)
 
-	os.fchown (tpf.fileno (), 0, grp.getgrnam ('dovecot').gr_gid)
-	os.fchmod (tpf.fileno (), 0640)
+	acl = posix1e.ACL(text='u::rw,u:dovecot:r,u:Debian-exim:r,g::-,m::r,o::-')
+	acl.applyto(tpf.fileno ())
 	tpf.close ()
 except:
 	os.unlink (tpf.name)

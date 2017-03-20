@@ -1,6 +1,8 @@
 Test-Command: python3 -m pytest
 Depends:
  @,
+ python,
+ python-pylibacl,
  python3,
  python3-pytest,
 Restrictions:

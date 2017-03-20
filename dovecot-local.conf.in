@@ -25,11 +25,11 @@ plugin {
     recipient_delimiter = +-
 }
 
-#service auth {
-#    unix_listener smtp-auth {
-#        mode = 0660
-#        group = Debian-exim
-#    }
-#}
-
 postmaster_address = postmaster@@mailname@
+
+service lmtp {
+    unix_listener lmtp {
+        mode = 0660
+        group = Debian-exim
+    }
+  }

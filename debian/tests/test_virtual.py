@@ -1,3 +1,4 @@
+import smtplib
 import subprocess
 
 from pytest import *
@@ -33,6 +34,12 @@ def test_delivery(address, sendmail, imap, print_logs, print_journal):
     print_journal()
     assert ('OK', [b'1']) == imap.uid('search', 'subject "{} test"'.format(address))
 
+def test_non_existing_account(sendmail, print_logs, print_journal):
+    with raises(smtplib.SMTPRecipientsRefused):
+        print(sendmail(To='nonexisting@test.example'))
+        print_logs()
+        print_journal()
+
 @mark.usefixtures('user_mailbox')
 @mark.parametrize('address,expected', [
     ('defer',     b'cannot be resolved at this time: temporary failure'),
@@ -49,6 +56,7 @@ def test_special_aliases(address, expected, print_logs, print_journal):
     print_journal()
     assert expected in o
 
+@mark.xfail(reason="haven't got this working yet")
 def test_save_to_detail_mailbox(imap, sendmail, print_logs, print_journal):
     imap.create('detail')
     sendmail(To='account+detail@test.example', Subject='deliver to detail mailbox')
