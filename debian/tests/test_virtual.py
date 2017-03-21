@@ -30,8 +30,8 @@ def test_delivery(address, sendmail, imap, print_logs, print_journal):
 
 @mark.parametrize('address,logmessage', [
     ('blackhole', ' => :blackhole: <blackhole@test.example> R=virtual_alias\n'),
-    ('file', ' <file@test.example> R=virtual_alias: delivery to file forbidden\n'),
-    ('pipe', ' <pipe@test.example> R=virtual_alias: delivery to pipe forbidden\n'),
+    ('file', ' R=virtual_alias: delivery to file forbidden\n'),
+    ('pipe', ' R=virtual_alias: delivery to pipe forbidden\n'),
 ])
 def test_special_aliases_accept(address, logmessage, sendmail, imap, print_logs, print_journal):
     try:

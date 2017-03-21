@@ -1,0 +1,17 @@
+CHECK_MAIL_HELO_ISSUED = yes # XXX test
+
+REMOTE_SMTP_HELO_FROM_DNS = yes # XXX test
+
+MAIN_LOG_SELECTOR = \
+    +smtp_protocol_error \
+    +smtp_syntax_error \
+    +tls_certificate_verified \
+    +tls_peerdn \
+    +8bitmime \
+    +deliver_time \
+    +delivery_size \
+    +queue_time \
+    +queue_time_overall \
+    +tls_sni
+
+# vim: ft=exim
