@@ -25,7 +25,7 @@ configure_exim() {
 
     # exim's init script fails if exim can't be started
     if ! invoke-rc.d exim4 start; then
-        systemctl status exim4
+        systemctl --no-pager status exim4
         exit 1
     fi
 }
@@ -46,7 +46,7 @@ configure_dovecot() {
     invoke-rc.d dovecot start
     sleep 1
     if ! invoke-rc.d dovecot status > /dev/null; then
-        systemctl status dovecot
+        systemctl --no-pager status dovecot
         exit 1
     fi
 }
