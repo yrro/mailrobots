@@ -101,20 +101,24 @@ def imap(imap_account, user_mailbox): # XXX use usesfixtures
     except Exception:
         pass
 
+
+@fixture
+def smtp_port():
+    return 25
+
 @yield_fixture
-def smtp(user_mailbox): # XXX use usesfixtures
+def smtp(user_mailbox, smtp_port): # XXX use usesfixtures
     # If we use localhost then the connection to the SMTP server uses ::1 (or
     # 127.0.0.1) as its source address, which is in +relay_from_hosts. This is
     # problematic because Exim will accept messages without verifying whether
     # they can be delivered. Using a different address will guarantee that Exim
     # will refuse to accept mail that it can't deliver.
-    smtp = smtplib.SMTP(socket.gethostname(), 25)
+    smtp = smtplib.SMTP(socket.gethostname(), smtp_port)
     #smtp.set_debuglevel(1)
-    yield smtp
     try:
+        yield smtp
+    finally:
         smtp.quit()
-    except Exception:
-        pass
 
 @yield_fixture
 def sendmail(smtp):

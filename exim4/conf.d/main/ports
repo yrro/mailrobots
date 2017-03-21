@@ -1,0 +1,3 @@
+daemon_smtp_ports = 25 : 587
+
+# vim: ft=exim
