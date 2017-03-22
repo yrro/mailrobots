@@ -1,11 +1,26 @@
 #!/bin/bash
 
 # Minimal setup of the testbed system, without the unnecessary stuff in the
-# lxd-debian template.
+# lxc-debian template.
 
 set -eu
 
 MIRROR=http://deb.debian.org/debian
+mirrors=(
+    "deb http://security.debian.org/ jessie/updates main contrib"
+    "deb $MIRROR jessie-updates main contrib"
+    "deb $MIRROR jessie-backports main contrib"
+)
+
+packages=(
+    dbus
+    eatmydata
+    libnss-resolve
+    libpam-systemd
+    netbase
+    systemd
+)
+
 SECURITY_MIRROR=http://security.debian.org/
 #DEBROBOTS_MIRROR=
 
@@ -38,6 +53,7 @@ parse_options "$@"
 debootstrap \
     --merged-usr \
     --variant=minbase \
+    --components=main,contrib \
     jessie "$rootfs" "$MIRROR"
 
 rm "$rootfs/etc/fstab"
@@ -46,11 +62,9 @@ rm "$rootfs/etc/machine-id"
 
 install -D -m 0644 -T locale.conf "$rootfs/etc/default/locale"
 
-cat > "$rootfs/etc/apt/sources.list.d/local.list" <<- EOF
-	deb $SECURITY_MIRROR jessie/updates main
-	deb $MIRROR jessie-updates main
-	deb $MIRROR jessie-backports main
-EOF
+for m in "${mirrors[@]}"; do
+    echo "$m"
+done > "$rootfs/etc/apt/sources.list.d/local.list"
 
 (
     trap "rm '$rootfs/usr/sbin/policy-rc.d'" EXIT
@@ -59,7 +73,7 @@ EOF
         trap "rm '$rootfs/etc/resolv.conf'" EXIT
         cp -T /etc/resolv.conf "$rootfs/etc/resolv.conf"
         chroot "$rootfs" apt-get update
-        chroot "$rootfs" apt-get install -y --no-install-recommends -t jessie-backports dbus libnss-resolve libpam-systemd netbase systemd
+        chroot "$rootfs" apt-get install -y --no-install-recommends -t jessie-backports "${packages[@]}"
         chroot "$rootfs" apt-get clean
     )
 )
