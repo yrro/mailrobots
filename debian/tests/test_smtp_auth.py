@@ -34,7 +34,7 @@ def test_plain_auth_refused(smtp, print_logs):
 @mark.xfail(reason="tls not yet implemented", strict=True)
 def test_starttls_auth_not_offered_25(smtp, print_logs):
     try:
-        smtp.starttls()
+        assert smtp.starttls()[0] == 220
         with raises(smtplib.SMTPException) as excinfo:
             smtp.login('user', 'password')
         assert ('SMTP AUTH extension not supported by server.',) == excinfo.value.args
@@ -46,7 +46,7 @@ def test_starttls_auth_not_offered_25(smtp, print_logs):
 @mark.usesfixtures('smtp_port')
 def test_starttls_auth_relay_permitted(smtp, sendmail, print_logs):
     try:
-        smtp.starttls()
+        assert smtp.starttls()[0] == 220
         sendmail(To='test@example.com')
     finally:
         print_logs()
