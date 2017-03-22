@@ -1,0 +1,3 @@
+acl_smtp_connect = acl_check_connect
+
+# vim: ft=exim

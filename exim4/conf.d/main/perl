@@ -1,0 +1,3 @@
+perl_startup = do '/etc/exim4/exim.pl'
+
+# vim: ft=exim

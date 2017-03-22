@@ -1,6 +1,7 @@
 Test-Command: python3 -m pytest
 Depends:
  @,
+ iproute2,
  python,
  python-pylibacl,
  python3,

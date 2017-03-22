@@ -1,0 +1,13 @@
+acl_check_connect:
+
+warn
+    condition = ${if isip4{$sender_host_address}}
+    set acl_c_asn = ${perl {asnum_v4} {$sender_host_address}}
+
+warn
+    condition = ${if isip6{$sender_host_address}}
+    set acl_c_asn = ${sg {${extract {2} {:} {${run {/usr/bin/geoiplookup6 -f /usr/share/GeoIP/GeoIPASNumv6.dat $sender_host_address}}}}} {^ *} {}}
+
+accept
+
+# vim: ft=exim
