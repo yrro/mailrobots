@@ -21,6 +21,7 @@ Depends:
  libgeo-ip-perl,
 # mailman,
  python,
+ python-pylibacl,
 # spamassassin,
  ${misc:Depends},
 Description: robots.org.uk mail system
