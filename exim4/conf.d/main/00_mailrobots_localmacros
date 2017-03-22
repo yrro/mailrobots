@@ -14,4 +14,8 @@ MAIN_LOG_SELECTOR = \
     +queue_time_overall \
     +tls_sni
 
+# Restore exim upstream defaults
+MAIN_IGNORE_BOUNCE_ERRORS_AFTER = 10w
+MAIN_TIMEOUT_FROZEN_AFTER = 0s
+
 # vim: ft=exim
