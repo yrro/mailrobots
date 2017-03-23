@@ -33,6 +33,10 @@ configure_exim() {
 configure_dovecot() {
     invoke-rc.d dovecot stop
 
+    sed -i \
+        -e '/^!include auth-system.conf.ext$/s/^/#/' \
+        /etc/dovecot/conf.d/10-auth.conf
+
     sed \
         -e "s/@first_valid_uid@/$(id -u mailstorage)/g" \
         -e "s/@last_valid_uid@/$(id -g mailstorage)/g" \
