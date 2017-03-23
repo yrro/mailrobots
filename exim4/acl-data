@@ -1,5 +1,11 @@
 warn
+    remove_header = X-Sender-ASN:
     condition = ${if def:acl_c_asn}
-    add_header = X-ASN: $acl_c_asn
+    add_header = X-Sender-ASN: $acl_c_asn
+
+warn
+    remove_header = X-Sender-Public-Suffix
+    condition = ${if def:acl_c_public_suffix}
+    add_header = X-Sender-Public-Suffix: $acl_c_public_suffix
 
 # vim: ft=exim

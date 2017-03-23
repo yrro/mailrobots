@@ -105,14 +105,18 @@ def imap(imap_account, user_mailbox): # XXX use usesfixtures
 def smtp_port():
     return 25
 
+@fixture
+def smtp_host():
+    return None
+
 @yield_fixture
-def smtp(user_mailbox, smtp_port, dummy_address, dummy_interface): # XXX use usesfixtures
+def smtp(user_mailbox, smtp_host, smtp_port, dummy_address, dummy_interface): # XXX use usesfixtures
     # If we use localhost then the connection to the SMTP server uses ::1 (or
     # 127.0.0.1) as its source address, which is in +relay_from_hosts. This is
     # problematic because Exim will accept messages without verifying whether
     # they can be delivered. Using a different address will guarantee that Exim
     # will refuse to accept mail that it can't deliver.
-    smtp = smtplib.SMTP(socket.gethostname(), smtp_port, source_address=(dummy_address, 0) if dummy_address else None)
+    smtp = smtplib.SMTP(smtp_host if smtp_host else socket.gethostname(), smtp_port, source_address=(dummy_address, 0) if dummy_address else None)
     #smtp.set_debuglevel(1)
     try:
         yield smtp
@@ -121,10 +125,12 @@ def smtp(user_mailbox, smtp_port, dummy_address, dummy_interface): # XXX use use
 
 @yield_fixture
 def sendmail(smtp):
-    def f(body='test message', Sender=pwd.getpwuid(os.getuid()).pw_name + '@' + socket.gethostname(), **kwargs):
+    def f(body='test message', Sender=pwd.getpwuid(os.getuid()).pw_name + '@' + socket.gethostname(), headers={}, **kwargs):
         msg = email.message.Message()
         msg['Sender'] = Sender
         for k, v in kwargs.items():
+            msg[k] = v
+        for k, v in headers.items():
             msg[k] = v
         msg.set_payload(body)
         r = smtp.send_message(msg)
@@ -140,11 +146,9 @@ def dummy_address():
 def dummy_interface(dummy_address):
     try:
         if dummy_address is not None:
-            subprocess.check_call(['ip', 'address', 'add', 'fd7a:d0a8:5ecb::1/64', 'dev', 'host0'])
             subprocess.check_call(['ip', 'link', 'add', 'name', 'dummy0', 'type', 'dummy'])
             subprocess.check_call(['ip', 'address', 'add', dummy_address, 'dev', 'dummy0'])
         yield
     finally:
         if dummy_address is not None:
             subprocess.check_call(['ip', 'link', 'delete', 'dev', 'dummy0'])
-            subprocess.check_call(['ip', 'address', 'delete', 'fd7a:d0a8:5ecb::1/64', 'dev', 'host0'])

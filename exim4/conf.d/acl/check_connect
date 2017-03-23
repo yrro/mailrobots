@@ -8,6 +8,10 @@ warn
     condition = ${if isip6{$sender_host_address}}
     set acl_c_asn = ${sg {${extract {2} {:} {${run {/usr/bin/geoiplookup6 -f /usr/share/GeoIP/GeoIPASNumv6.dat $sender_host_address}}}}} {^ *} {}}
 
+warn
+    condition = ${if def:sender_host_name}
+    set acl_c_public_suffix = ${perl {public_suffix} {$sender_host_name}}
+
 accept
 
 # vim: ft=exim

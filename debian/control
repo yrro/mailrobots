@@ -18,6 +18,7 @@ Depends:
  dovecot-sieve,
  geoip-bin,
  geoip-database-contrib,
+ libdomain-publicsuffix-perl,
  libgeo-ip-perl,
 # mailman,
  python,

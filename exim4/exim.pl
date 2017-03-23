@@ -1,6 +1,14 @@
 use strict;
 use warnings;
 
+use Domain::PublicSuffix;
+my $ps = Domain::PublicSuffix->new;
+sub public_suffix {
+        my $domain = shift // die 'Missing domain';
+        my $result = $ps->get_root_domain ($domain);
+        return $result // '';
+}
+
 use Geo::IP;
 my $g4 = Geo::IP->open_type(Geo::IP::GEOIP_ASNUM_EDITION, Geo::IP::GEOIP_CHECK_CACHE | Geo::IP::GEOIP_MEMORY_CACHE) || die;
 sub asnum_v4 {
