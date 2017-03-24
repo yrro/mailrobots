@@ -15,9 +15,13 @@ mirrors=(
 packages=(
     dbus
     eatmydata
+    vim
+    less
     libnss-resolve
     libpam-systemd
     netbase
+    netcat-openbsd
+    strace
     systemd
 )
 
