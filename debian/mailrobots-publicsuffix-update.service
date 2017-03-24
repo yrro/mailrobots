@@ -1,0 +1,8 @@
+[Unit]
+Description=public suffix list update
+
+[Service]
+Type=oneshot
+User=mailrobots
+ExecStart=/usr/bin/wget -O /var/lib/mailrobots/publicsuffix/public_suffix_list.dat.tmp https://publicsuffix.org/list/public_suffix_list.dat
+ExecStart=/bin/mv /var/lib/mailrobots/publicsuffix/public_suffix_list.dat.tmp /var/lib/mailrobots/publicsuffix/public_suffix_list.dat
