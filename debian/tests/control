@@ -1,8 +1,8 @@
-Test-Command: apt-get -t jessie-backports -y install python3-pytest 2>&1 && python3 -m pytest -v
+Test-Command:
+ apt-get -t jessie-backports -y install python3-pytest 2>&1 && cd debian/tests && python3 -m pytest -v --durations=10
 Depends:
  @,
  iproute2,
- python,
  python3,
 Restrictions:
  isolation-container,
