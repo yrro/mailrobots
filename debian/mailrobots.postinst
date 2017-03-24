@@ -59,6 +59,9 @@ case "$1" in
     configure)
         systemd-sysusers /usr/lib/sysusers.d/mailrobots.conf
 
+        chgrp mailrobots /var/lib/mailrobots/publicsuffix
+        chmod 0775 /var/lib/mailrobots/publicsuffix
+
         configure_exim
         configure_dovecot
     ;;

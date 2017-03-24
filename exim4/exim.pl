@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Domain::PublicSuffix;
-my $ps = Domain::PublicSuffix->new;
+my $ps = Domain::PublicSuffix->new({'data_file' => '/var/lib/mailrobots/publicsuffix/public_suffix_list.dat'});
 sub public_suffix {
         my $domain = shift // die 'Missing domain';
         my $result = $ps->get_root_domain ($domain);

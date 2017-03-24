@@ -7,6 +7,8 @@ Build-Depends:
 
 Package: mailrobots
 Architecture: all
+Pre-Depends:
+ ca-certificates,
 Depends:
  acl,
 # clamav-daemon,
@@ -24,5 +26,6 @@ Depends:
  python,
  python-pylibacl,
 # spamassassin,
+ wget,
  ${misc:Depends},
 Description: robots.org.uk mail system

@@ -1,2 +1,2 @@
-/srv/mail
 /srv/mail/domains
+/var/lib/mailrobots/publicsuffix
