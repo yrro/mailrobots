@@ -1,4 +1,5 @@
 import os
+import socket
 import subprocess
 
 from pytest import *
@@ -20,6 +21,7 @@ def test_asn(sendmail, imap, print_logs, print_journal):
         print_logs()
         print_journal()
 
+@mark.xfail(reason="some kind of resolved race with the updating of /etc/hosts")
 @mark.parametrize('dummy_address', [
     '216.58.201.46',
     '2a00:1450:4009:80f::200e',
@@ -36,6 +38,12 @@ def test_public_suffix(sendmail, imap, print_logs, print_journal):
     finally:
         print_logs()
         print_journal()
+
+@mark.parametrize('address', ['216.58.201.46', '2a00:1450:4009:80f::200e'])
+def test_public_suffix_bh(address):
+    with subprocess.Popen(['/usr/sbin/exim', '-bh', address], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
+        o, e = p.communicate('''EHLO sam\nMAIL FROM:<>\nRCPT TO:<root@{}>\nDATA\nSubject: blah\n\nbody\n.\nQUIT\n'''.format(socket.gethostname()).encode('ascii'))
+    assert b'X-Sender-Public-Suffix: 1e100.net' in e
 
 def test_public_suffix_update():
     subprocess.check_call(['systemctl', 'start', 'mailrobots-publicsuffix-update.service'])
