@@ -8,6 +8,8 @@ import socket
 import subprocess
 import time
 
+import pyroute2
+from pyroute2.netlink.rtnl.ifaddrmsg import IFA_F_TENTATIVE
 from pytest import *
 
 imaplib.Debug=4
@@ -105,18 +107,15 @@ def imap(imap_account, user_mailbox): # XXX use usesfixtures
 def smtp_port():
     return 25
 
-@fixture
-def smtp_host():
-    return None
-
 @yield_fixture
-def smtp(user_mailbox, smtp_host, smtp_port, dummy_address, dummy_interface): # XXX use usesfixtures
-    # If we use localhost then the connection to the SMTP server uses ::1 (or
-    # 127.0.0.1) as its source address, which is in +relay_from_hosts. This is
-    # problematic because Exim will accept messages without verifying whether
-    # they can be delivered. Using a different address will guarantee that Exim
-    # will refuse to accept mail that it can't deliver.
-    smtp = smtplib.SMTP(smtp_host if smtp_host else socket.gethostname(), smtp_port, source_address=(dummy_address, 0) if dummy_address else None)
+def smtp(user_mailbox, smtp_port, dummy_address, dummy_interface): # XXX use usesfixtures
+    smtp = smtplib.SMTP(source_address=(dummy_address, 0) if dummy_address else None)
+    # If we connect to localhost then the connection to the SMTP server uses
+    # ::1 (or 127.0.0.1) as its source address, which is in +relay_from_hosts.
+    # This is problematic because Exim will accept messages without verifying
+    # whether they can be delivered. Using a different address will guarantee
+    # that Exim will refuse to accept mail that it can't deliver.
+    smtp.connect(socket.gethostname(), smtp_port)
     #smtp.set_debuglevel(1)
     try:
         yield smtp
@@ -144,11 +143,22 @@ def dummy_address():
 
 @yield_fixture
 def dummy_interface(dummy_address):
+    ip = pyroute2.IPRoute()
+    idx = ip.link_lookup(ifname='host0')[0]
     try:
         if dummy_address is not None:
-            subprocess.check_call(['ip', 'link', 'add', 'name', 'dummy0', 'type', 'dummy'])
-            subprocess.check_call(['ip', 'address', 'add', dummy_address, 'dev', 'dummy0'])
+            prefixlen = 128 if ':' in dummy_address else 32
+            ip.addr('add', index=idx, address=dummy_address, prefixlen=prefixlen)
+            # We can't bind to the address until duplicate address detection finishes
+            for x in range(100):
+                i = next((i for i in ip.get_addr() if i['index'] == idx and dict(i['attrs'])['IFA_ADDRESS'] == dummy_address), None)
+                assert i is not None, 'the address we just added has disappeared'
+                if i['flags'] & IFA_F_TENTATIVE == 0:
+                    break
+                time.sleep(0.1)
+            else:
+                assert 0, 'timed out waiting for address to lose tentative flag'
         yield
     finally:
         if dummy_address is not None:
-            subprocess.check_call(['ip', 'link', 'delete', 'dev', 'dummy0'])
+            ip.addr('delete', index=idx, address=dummy_address, prefixlen=prefixlen)

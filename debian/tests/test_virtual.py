@@ -39,7 +39,7 @@ def test_special_aliases_accept(address, logmessage, sendmail, imap, print_logs,
         imap.select()
         assert ('OK', [b'']) == imap.uid('search', 'ALL')
         with open('/var/log/exim4/mainlog') as m:
-            assert any(line.endswith(logmessage) for line in m)
+            assert any(line for line in m if line.endswith(logmessage))
     finally:
         print_logs()
         print_journal()

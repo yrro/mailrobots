@@ -3,11 +3,10 @@ import subprocess
 
 from pytest import *
 
-@mark.parametrize('dummy_address,smtp_host', [
-    ('216.58.201.46', None),
-    ('2a00:1450:4009:80f::200e', '::1'),
+@mark.parametrize('dummy_address', [
+    '216.58.201.46',
+    '2a00:1450:4009:80f::200e',
 ])
-@mark.usesfixtures('dummy_interface')
 def test_asn(sendmail, imap, print_logs, print_journal):
     try:
         sendmail(To='account@test.example', Subject='asn test', headers={'X-Sender-ASN': 'remove me'})
@@ -21,11 +20,10 @@ def test_asn(sendmail, imap, print_logs, print_journal):
         print_logs()
         print_journal()
 
-@mark.parametrize('dummy_address,smtp_host', [
-    ('216.58.201.46', None),
-    ('2a00:1450:4009:80f::200e', '::1'),
+@mark.parametrize('dummy_address', [
+    '216.58.201.46',
+    '2a00:1450:4009:80f::200e',
 ])
-@mark.usesfixtures('dummy_interface')
 def test_public_suffix(sendmail, imap, print_logs, print_journal):
     try:
         sendmail(To='account@test.example', Subject='public suffix test', headers={'X-Sender-Public-Suffix': 'remove me'})
