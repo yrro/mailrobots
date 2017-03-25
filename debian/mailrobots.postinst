@@ -17,22 +17,18 @@ set -e
 # for details, see https://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-configure_exim() {
-    invoke-rc.d exim4 stop
-
+function configure_exim {
     install -m 0644 -t /etc/exim4 /usr/lib/mailrobots/update-exim4.conf.conf
     # XXX /etc/mailname currently contains bare hostname
 
     # exim's init script fails if exim can't be started
-    if ! invoke-rc.d exim4 start; then
+    if ! systemctl restart exim4.service; then
         systemctl --no-pager status exim4
         exit 1
     fi
 }
 
-configure_dovecot() {
-    invoke-rc.d dovecot stop
-
+function configure_dovecot {
     sed -i \
         -e '/^!include auth-system.conf.ext$/s/^/#/' \
         /etc/dovecot/conf.d/10-auth.conf
@@ -47,11 +43,28 @@ configure_dovecot() {
         > /etc/dovecot/local.conf
 
     # dovecot's systemd unit does not use readiness notification
-    invoke-rc.d dovecot start
+    systemctl restart dovecot.service
     sleep 1
-    if ! invoke-rc.d dovecot status > /dev/null; then
+    if ! systemctl --quiet is-active dovecot.service; then
         systemctl --no-pager status dovecot
         exit 1
+    fi
+}
+
+function configure_clamav {
+    if ! id -nG clamav | grep -qw Debian-exim; then
+        usermod -a -G Debian-exim clamav
+        systemctl stop clamav-daemon.service
+    fi
+
+    if ! systemctl --quiet is-active clamav-daemon.service; then
+        # clamav-daemon.{socket,service} won't start until freshclam has
+        # downloaded the database
+        systemctl start clamav-freshclam.service
+        if ! timeout 60s bash -c 'until systemctl is-active --quiet clamav-daemon.socket; do sleep 1; systemctl reset-failed clamav-daemon.socket; systemctl start clamav-daemon.socket; done'; then
+            echo 'Timed out waiting for freshclam update'
+            exit 1
+        fi
     fi
 }
 
@@ -64,6 +77,7 @@ case "$1" in
 
         configure_exim
         configure_dovecot
+        configure_clamav
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

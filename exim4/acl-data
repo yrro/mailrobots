@@ -8,4 +8,8 @@ warn
     condition = ${if def:acl_c_public_suffix}
     add_header = X-Sender-Public-Suffix: $acl_c_public_suffix
 
+deny
+    malware = *
+    message = Malware detected in message ($malware_name)
+
 # vim: ft=exim
