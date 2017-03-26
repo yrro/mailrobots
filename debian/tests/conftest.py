@@ -9,8 +9,6 @@ import socket
 import subprocess
 import time
 
-import pyroute2
-from pyroute2.netlink.rtnl.ifaddrmsg import IFA_F_TENTATIVE
 from pytest import *
 
 imaplib.Debug=4
@@ -108,8 +106,8 @@ def smtp_port():
     return 25
 
 @yield_fixture
-def smtp(user_mailbox, smtp_port, dummy_address, dummy_interface): # XXX use usesfixtures
-    smtp = smtplib.SMTP(source_address=(dummy_address, 0) if dummy_address else None)
+def smtp(smtp_port, user_mailbox):
+    smtp = smtplib.SMTP()
     # If we connect to localhost then the connection to the SMTP server uses
     # ::1 (or 127.0.0.1) as its source address, which is in +relay_from_hosts.
     # This is problematic because Exim will accept messages without verifying
@@ -136,66 +134,6 @@ def sendmail(smtp):
         time.sleep(0.25)
         return r
     yield f
-
-@fixture
-def dummy_address():
-    return None
-
-@contextlib.contextmanager
-def etc_hosts(address, hostname):
-    try:
-        shutil.copy('/etc/hosts', '/etc/hosts.tmp')
-        with open('/etc/hosts.tmp', 'ab') as f:
-            f.write(address.encode('ascii'))
-            f.write(b' ')
-            f.write(hostname.encode('ascii'))
-            f.write(b'\n')
-        # Ideally we're use renameat2 with RENAME_EXCHANGE but that is not
-        # available in the Python standard library
-        os.rename('/etc/hosts', '/etc/hosts.save')
-        os.rename('/etc/hosts.tmp', '/etc/hosts')
-        #print(open('/etc/hosts').read())
-        #print(subprocess.check_output(['systemd-resolve', address]))
-        #print(subprocess.check_output(['systemd-resolve', hostname]))
-        #subprocess.check_call(['systemd-resolve', '--flush-caches'])
-        #time.sleep(0.5) # give systemd-resolved(8) some time to re-read /etc/hosts
-        #print(subprocess.check_output(['systemd-resolve', address]))
-        #print(subprocess.check_output(['systemd-resolve', hostname]))
-        yield
-    finally:
-        if os.path.exists('/etc/hosts.save'):
-            os.rename('/etc/hosts.save', '/etc/hosts')
-        if os.path.exists('/etc/hosts.tmp'):
-            os.remove('/etc/hosts.tmp')
-
-@contextlib.contextmanager
-def extra_address(interface, address):
-    ip = pyroute2.IPRoute()
-    idx = ip.link_lookup(ifname=interface)[0]
-    prefixlen = 128 if ':' in address else 32
-    try:
-        ip.addr('add', index=idx, address=address, prefixlen=prefixlen)
-        # We can't bind to the address until duplicate address detection finishes
-        for x in range(100):
-            i = next((i for i in ip.get_addr() if i['index'] == idx and dict(i['attrs'])['IFA_ADDRESS'] == address), None)
-            assert i, 'the address we just added has disappeared!'
-            if i['flags'] & IFA_F_TENTATIVE == 0:
-               break
-            time.sleep(0.1)
-        else:
-            assert 0, 'timed out waiting for address to lose tentative flag'
-        yield
-    finally:
-        if any(i for i in ip.get_addr() if i['index'] == idx and dict(i['attrs'])['IFA_ADDRESS'] == address):
-            ip.addr('delete', index=idx, address=address, prefixlen=prefixlen)
-
-@yield_fixture
-def dummy_interface(dummy_address):
-    with contextlib.ExitStack() as s:
-        if dummy_address is not None:
-            s.enter_context(extra_address('host0', dummy_address))
-            s.enter_context(etc_hosts(dummy_address, 'something.1e100.net'))
-        yield
 
 @yield_fixture
 def local_user():
