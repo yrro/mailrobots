@@ -3,7 +3,7 @@ Description=public suffix list update timer
 
 [Timer]
 OnCalendar=weekly
-RandomizedDelaySec=1d
+RandomizedDelaySec=7d
 Persistent=true
 
 [Install]
