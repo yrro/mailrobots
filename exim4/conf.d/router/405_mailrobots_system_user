@@ -1,0 +1,14 @@
+# Redirect messages for users with a uid outside of the range 1000 - 59999 to
+# root. The range is defined in Policy section 9.2.2:
+# <http://www.debian.org/doc/debian-policy/ch-opersys.html#s9.2.2>
+
+system_user:
+    debug_print = "R: system_user for $local_part@$domain [$local_user_uid]"
+    driver = redirect
+
+    domains = +local_domains
+    check_local_user
+    condition = ${if or {{< {$local_user_uid} {1000}} {> {$local_user_uid} {59999}}}}
+    data = root
+
+# vim: filetype=exim

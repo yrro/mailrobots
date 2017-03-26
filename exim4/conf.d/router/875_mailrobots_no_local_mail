@@ -1,0 +1,11 @@
+no_local_mail:
+    debug_print = "R: no_local_mail for $local_part@$domain"
+
+    check_local_user
+    domains = +local_domains
+
+    driver = redirect
+    allow_fail
+    data = :fail: local user has no forwarding address
+
+# vim: ft=exim

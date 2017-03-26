@@ -16,7 +16,6 @@ from pytest import *
 imaplib.Debug=4
 
 logs = [
-    '/var/mail/mail',
     '/var/log/exim4/mainlog',
     '/var/log/exim4/rejectlog',
     '/var/log/exim4/paniclog',
@@ -197,3 +196,9 @@ def dummy_interface(dummy_address):
             s.enter_context(extra_address('host0', dummy_address))
             s.enter_context(etc_hosts(dummy_address, 'something.1e100.net'))
         yield
+
+@yield_fixture
+def local_user():
+    subprocess.check_call(['adduser', '--disabled-password', '--gecos', 'mailrobots test user', 'localuser'])
+    yield
+    subprocess.check_call(['deluser', '--remove-home','localuser'])
