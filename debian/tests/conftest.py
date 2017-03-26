@@ -94,7 +94,7 @@ def imap_account():
     return 'account@test.example'
 
 @yield_fixture
-def imap(imap_account, user_mailbox): # XXX use usesfixtures
+def imap(imap_account, user_mailbox):
     imap = imaplib.IMAP4('localhost')
     imap.login(imap_account, 'password')
     yield imap
