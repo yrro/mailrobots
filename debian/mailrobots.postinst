@@ -34,10 +34,8 @@ function configure_dovecot {
         /etc/dovecot/conf.d/10-auth.conf
 
     sed \
-        -e "s/@first_valid_uid@/$(id -u mailstorage)/g" \
-        -e "s/@last_valid_uid@/$(id -g mailstorage)/g" \
-        -e "s/@first_valid_gid@/$(id -u mailstorage)/g" \
-        -e "s/@last_valid_gid@/$(id -g mailstorage)/g" \
+        -e "s/@mailstorage_uid@/$(id -u mailstorage)/g" \
+        -e "s/@mailstorage_gid@/$(id -g mailstorage)/g" \
         -e "s/@mailname@/$(</etc/mailname)/g" \
         /usr/lib/mailrobots/dovecot-local.conf.in \
         > /etc/dovecot/local.conf

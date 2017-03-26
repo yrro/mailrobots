@@ -4,10 +4,10 @@ mail_gid = mailstorage
 
 # These aren't strictly necessary, since our password database shouldn't be
 # returning uid/gid information
-first_valid_uid = @first_valid_uid@
-last_valid_uid = @last_valid_uid@
-first_valid_gid = @first_valid_gid@
-last_valid_gid = @last_valid_gid@
+first_valid_uid = @mailstorage_uid@
+last_valid_uid = @mailstorage_uid@
+first_valid_gid = @mailstorage_gid@
+last_valid_gid = @mailstorage_gid@
 
 passdb {
     driver = passwd-file
