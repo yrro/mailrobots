@@ -1,3 +1,5 @@
+verbose_proctitle = yes
+
 # These are overridden by individual account lookups
 mail_uid = mailstorage
 mail_gid = mailstorage
