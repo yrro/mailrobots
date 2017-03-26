@@ -7,9 +7,10 @@ Build-Depends:
 
 Package: mailrobots
 Architecture: all
+Pre-Depends:
+ ca-certificates,
 Depends:
  acl,
- ca-certificates,
  clamav-daemon,
  clamav-freshclam,
  exim4-daemon-heavy,
