@@ -1,1 +1,1 @@
-debian/README.source
+debian/README.Debian
