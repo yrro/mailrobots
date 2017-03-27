@@ -6,6 +6,11 @@ config files.
 
 autopkgtest to drive a test suite.
 
+TODO
+----
+
+* Don't add X-Sender-{ASN,Public-Suffix} headers for outgoing mail.
+
 Prepare the testbed
 -------------------
 
