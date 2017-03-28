@@ -39,7 +39,7 @@ function configure_exim {
 
     # exim's init script fails if exim can't be started
     if ! systemctl restart exim4.service; then
-        systemctl --no-pager status exim4
+        systemctl --no-pager --full status exim4
         exit 1
     fi
 }
@@ -63,7 +63,7 @@ function configure_dovecot {
     systemctl restart dovecot.service
     sleep 1
     if ! systemctl --quiet is-active dovecot.service; then
-        systemctl --no-pager status dovecot
+        systemctl --no-pager --full status dovecot
         exit 1
     fi
 }
