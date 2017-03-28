@@ -140,16 +140,3 @@ def local_user():
     subprocess.check_call(['adduser', '--disabled-password', '--gecos', 'mailrobots test user', 'localuser'])
     yield
     subprocess.check_call(['deluser', '--remove-home','localuser'])
-
-@yield_fixture
-def smtp_tls():
-    os.mkdir('/etc/exim4/ssl')
-    shutil.copy('/etc/ssl/certs/ssl-cert-snakeoil.pem', '/etc/exim4/ssl/smtp-LE-cert+chain.pem')
-    # Note to self... shutil.copy* are insecure. Never use them on actual secret data.
-    shutil.copy('/etc/ssl/private/ssl-cert-snakeoil.key', '/etc/exim4/ssl/smtp-LE-key.pem')
-    os.chmod('/etc/exim4/ssl/smtp-LE-key.pem', 0o440)
-    shutil.chown('/etc/exim4/ssl/smtp-LE-key.pem', group='Debian-exim')
-    subprocess.check_call(['systemctl', 'reload', 'exim4'])
-    yield
-    shutil.rmtree('/etc/exim4/ssl')
-    subprocess.check_call(['systemctl', 'reload', 'exim4'])

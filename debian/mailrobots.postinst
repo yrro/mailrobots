@@ -17,9 +17,25 @@ set -e
 # for details, see https://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+function copy_ssl {
+    src="$1"
+    dst="$2"
+    mode="$3"
+    group="$4"
+
+    if [[ $HOSTNAME == autopkgtest-* ]]; then
+        if [[ ! -e $dst ]]; then
+            install -D -m "$mode" -g "$group" -T "$src" "$dst"
+        fi
+    fi
+}
+
 function configure_exim {
     install -m 0644 -t /etc/exim4 /usr/lib/mailrobots/update-exim4.conf.conf
     # XXX /etc/mailname currently contains bare hostname
+
+    copy_ssl /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/exim4/ssl/smtp-LE-cert+chain.pem 0444 root
+    copy_ssl /etc/ssl/private/ssl-cert-snakeoil.key /etc/exim4/ssl/smtp-LE-key.pem 0440 Debian-exim
 
     # exim's init script fails if exim can't be started
     if ! systemctl restart exim4.service; then
@@ -39,6 +55,9 @@ function configure_dovecot {
         -e "s/@mailname@/$(</etc/mailname)/g" \
         /usr/lib/mailrobots/dovecot-local.conf.in \
         > /etc/dovecot/local.conf
+
+    copy_ssl /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/dovecot/ssl/imap-LE-cert+chain.pem 0444 root
+    copy_ssl /etc/ssl/private/ssl-cert-snakeoil.key /etc/dovecot/ssl/imap-LE-key.pem 0400 root
 
     # dovecot's systemd unit does not use readiness notification
     systemctl restart dovecot.service

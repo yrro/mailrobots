@@ -28,7 +28,6 @@ def test_plain_auth_refused(smtp, print_logs):
     finally:
         print_logs()
 
-@mark.usefixtures('smtp_tls')
 def test_starttls_auth_not_offered_25(smtp, print_logs):
     try:
         assert smtp.starttls()[0] == 220
@@ -38,7 +37,6 @@ def test_starttls_auth_not_offered_25(smtp, print_logs):
     finally:
         print_logs()
 
-@mark.usefixtures('smtp_tls')
 @mark.parametrize('smtp_port', [587])
 def test_starttls_auth_relay_permitted(smtp, sendmail, print_logs):
     try:

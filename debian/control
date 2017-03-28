@@ -27,6 +27,7 @@ Depends:
  python,
  python-pylibacl,
 # spamassassin,
+ ssl-cert,
  wget,
  ${misc:Depends},
 Description: robots.org.uk mail system
