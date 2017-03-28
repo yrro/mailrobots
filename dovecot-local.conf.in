@@ -11,6 +11,11 @@ last_valid_uid = @mailstorage_uid@
 first_valid_gid = @mailstorage_gid@
 last_valid_gid = @mailstorage_gid@
 
+ssl = required
+ssl_cert = </etc/dovecot/ssl/imap-LE-cert+chain.pem
+ssl_key = </etc/dovecot/ssl/imap-LE-key.pem
+ssl_cipher_list = HIGH:!DSS:!aNULL
+
 passdb {
     driver = passwd-file
     args = scheme=crypt /srv/mail/passwd

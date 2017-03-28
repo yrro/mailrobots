@@ -92,14 +92,22 @@ def imap_account():
     return 'account@test.example'
 
 @yield_fixture
-def imap(imap_account, user_mailbox):
-    imap = imaplib.IMAP4('localhost')
-    imap.login(imap_account, 'password')
+def imap_preauth():
+    # Dovecot treats connections with the same source & destination addresses
+    # as trusted and does not require authentication to take place over a
+    # secure channel.
+    class IMAP(imaplib.IMAP4):
+        def _create_socket(self):
+            return socket.create_connection((self.host, self.port), source_address=('127.0.0.1', 0))
+    imap = IMAP(socket.gethostname())
     yield imap
-    try:
-        imap.logout()
-    except Exception:
-        pass
+    imap.logout()
+
+@yield_fixture
+def imap(imap_preauth, imap_account, user_mailbox):
+    imap_preauth.starttls()
+    imap_preauth.login(imap_account, 'password')
+    yield imap_preauth
 
 @fixture
 def smtp_port():
