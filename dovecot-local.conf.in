@@ -34,4 +34,11 @@ service lmtp {
         mode = 0660
         group = Debian-exim
     }
-  }
+}
+
+service auth {
+    unix_listener auth-smtp {
+        mode = 0660
+        group = Debian-exim
+    }
+}

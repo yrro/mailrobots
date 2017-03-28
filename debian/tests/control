@@ -3,6 +3,7 @@ Test-Command:
 Depends:
  @,
  python3,
+ ssl-cert,
 Restrictions:
  isolation-container,
  needs-root,

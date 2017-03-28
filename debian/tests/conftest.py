@@ -108,13 +108,13 @@ def smtp_port():
 @yield_fixture
 def smtp(smtp_port, user_mailbox):
     smtp = smtplib.SMTP()
+    #smtp.set_debuglevel(1)
     # If we connect to localhost then the connection to the SMTP server uses
     # ::1 (or 127.0.0.1) as its source address, which is in +relay_from_hosts.
     # This is problematic because Exim will accept messages without verifying
     # whether they can be delivered. Using a different address will guarantee
     # that Exim will refuse to accept mail that it can't deliver.
     smtp.connect(socket.gethostname(), smtp_port)
-    #smtp.set_debuglevel(1)
     try:
         yield smtp
     finally:
@@ -140,3 +140,16 @@ def local_user():
     subprocess.check_call(['adduser', '--disabled-password', '--gecos', 'mailrobots test user', 'localuser'])
     yield
     subprocess.check_call(['deluser', '--remove-home','localuser'])
+
+@yield_fixture
+def smtp_tls():
+    os.mkdir('/etc/exim4/ssl')
+    shutil.copy('/etc/ssl/certs/ssl-cert-snakeoil.pem', '/etc/exim4/ssl/smtp-LE-cert+chain.pem')
+    # Note to self... shutil.copy* are insecure. Never use them on actual secret data.
+    shutil.copy('/etc/ssl/private/ssl-cert-snakeoil.key', '/etc/exim4/ssl/smtp-LE-key.pem')
+    os.chmod('/etc/exim4/ssl/smtp-LE-key.pem', 0o440)
+    shutil.chown('/etc/exim4/ssl/smtp-LE-key.pem', group='Debian-exim')
+    subprocess.check_call(['systemctl', 'reload', 'exim4'])
+    yield
+    shutil.rmtree('/etc/exim4/ssl')
+    subprocess.check_call(['systemctl', 'reload', 'exim4'])
