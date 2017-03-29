@@ -2,8 +2,7 @@ dovecot:
     debug_print = "T: dovecot for $local_part@$domain"
 
     driver = lmtp
-    # per-user spamassassin scan
-    #transport_filter = /usr/bin/spamc -s SPAM_MAX_SIZE -x -u $local_part@$domain
+    transport_filter = /usr/bin/spamc -s SPAM_MAX_SIZE -xX -u $local_part@$domain
 
     socket = /run/dovecot/lmtp
 

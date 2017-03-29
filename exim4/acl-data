@@ -12,4 +12,15 @@ deny
     malware = *
     message = Malware detected in message ($malware_name)
 
+deny
+    condition = ${if <= {$message_size} {SPAM_MAX_SIZE}}
+    spam = spamd@spamd.invalid:true
+    condition = ${if > {$spam_score_int} {SPAM_REJECT_SCORE}}
+    message = Message classified as spam ($spam_score points)
+
+warn
+    remove_header = X-Spam-Checker-Version
+    condition = ${if > {$message_size} {SPAM_MAX_SIZE}}
+    message = X-Spam-Checker-Version: unchecked; message too large
+
 # vim: ft=exim

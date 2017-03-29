@@ -1,0 +1,7 @@
+# in bytes
+SPAM_MAX_SIZE=2097152
+
+# in ⅒
+SPAM_REJECT_SCORE=100
+
+# vim: ft=exim

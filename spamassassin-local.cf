@@ -1,0 +1,7 @@
+# Do not edit below this line - changes will be overwritten!
+
+report_safe 0
+add_header all Report _REPORT_
+#bayes_auto_learn_threshold 6.0
+#required_score 4.0
+normalize_charset 1

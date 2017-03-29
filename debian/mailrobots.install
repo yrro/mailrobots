@@ -2,8 +2,13 @@ build                  /usr/lib/mailrobots
 dovecot-local.conf.in  /usr/lib/mailrobots
 permissions            /usr/lib/mailrobots
 update-exim4.conf.conf /usr/lib/mailrobots
+spamassassin-local.cf  /usr/lib/mailrobots
 
 exim4 /etc
 
 debian/*.service /lib/systemd/system
 debian/*.timer   /lib/systemd/system
+
+spamd.invalid /srv/mail/domains
+
+mailrobots.pre /etc/spamassassin
