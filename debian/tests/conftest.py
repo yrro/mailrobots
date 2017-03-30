@@ -1,5 +1,6 @@
 import contextlib
 import email.message
+import functools
 import imaplib
 import os
 import pwd
@@ -129,19 +130,34 @@ def smtp(smtp_port, user_mailbox):
         smtp.quit()
 
 @yield_fixture
+def lmtp(user_mailbox):
+    lmtp = smtplib.LMTP()
+    lmtp.set_debuglevel(1)
+    lmtp.connect('/run/dovecot/lmtp')
+    try:
+        yield lmtp
+    finally:
+        lmtp.quit()
+
+def _send_message(smtp, body='test message\r\n', Sender=pwd.getpwuid(os.getuid()).pw_name + '@' + socket.gethostname(), headers={}, **kwargs):
+    msg = email.message.Message()
+    msg['Sender'] = Sender
+    for k, v in kwargs.items():
+        msg[k] = v
+    for k, v in headers.items():
+        msg[k] = v
+    msg.set_payload(body)
+    r = smtp.send_message(msg)
+    time.sleep(0.25)
+    return r
+
+@yield_fixture
 def sendmail(smtp):
-    def f(body='test message', Sender=pwd.getpwuid(os.getuid()).pw_name + '@' + socket.gethostname(), headers={}, **kwargs):
-        msg = email.message.Message()
-        msg['Sender'] = Sender
-        for k, v in kwargs.items():
-            msg[k] = v
-        for k, v in headers.items():
-            msg[k] = v
-        msg.set_payload(body)
-        r = smtp.send_message(msg)
-        time.sleep(0.25)
-        return r
-    yield f
+    yield functools.partial(_send_message, smtp)
+
+@yield_fixture
+def lsendmail(lmtp):
+    yield functools.partial(_send_message, lmtp)
 
 @yield_fixture
 def local_user():

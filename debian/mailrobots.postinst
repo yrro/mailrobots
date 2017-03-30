@@ -68,6 +68,23 @@ function configure_dovecot {
     fi
 }
 
+function compile_sieve {
+    (
+        shopt -s nullglob
+        for old in /var/lib/mailrobots/sieve/*; do
+            rm -rf "$old"
+        done
+    )
+    (
+        shopt -s globstar
+        cd /usr/lib/mailrobots/sieve
+        for s in **/*.sieve; do
+            install -D -m 0644 -t "/var/lib/mailrobots/sieve/$(dirname "$s")" "$s"
+            sievec "/var/lib/mailrobots/sieve/$s"
+        done
+    )
+}
+
 function configure_clamav {
     if ! id -nG clamav | grep -qw Debian-exim; then
         usermod -a -G Debian-exim clamav
@@ -111,6 +128,7 @@ case "$1" in
 
         configure_exim
         configure_dovecot
+        compile_sieve
         configure_clamav
         configure_spamassassin
     ;;

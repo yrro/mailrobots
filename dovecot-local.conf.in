@@ -28,11 +28,33 @@ userdb {
 
 lmtp_save_to_detail_mailbox = yes
 
+namespace inbox {
+    mailbox Spam {
+        auto = subscribe
+        special_use = \Junk
+    }
+}
+
 plugin {
     recipient_delimiter = +-
+
+    sieve_extensions = +spamtest +spamtestplus
+
+    sieve_after = /var/lib/mailrobots/sieve/after
+
+    sieve_quota_max_scripts = 10
+    sieve_quota_max_storage = 100KB
+
+    sieve_spamtest_status_type = score
+    sieve_spamtest_status_header = X-Spam-Status: \bscore=(-?[[:digit:]]+\.[[:digit:]])\b
+    sieve_spamtest_max_header = X-Spam-Status: \brequired=(-?[[:digit:]]+\.[[:digit:]])\b
 }
 
 postmaster_address = postmaster@@mailname@
+
+protocol lmtp {
+    mail_plugins = $mail_plugins sieve
+}
 
 service lmtp {
     unix_listener lmtp {
@@ -47,3 +69,5 @@ service auth {
         group = Debian-exim
     }
 }
+
+# vim: ft=conf ts=8 sts=4 sw=4 et

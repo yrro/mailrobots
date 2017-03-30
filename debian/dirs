@@ -1,2 +1,3 @@
 /srv/mail/domains
 /var/lib/mailrobots/publicsuffix
+/var/lib/mailrobots/sieve
