@@ -3,7 +3,7 @@
 #
 # see: dh_installdeb(1)
 
-set -e
+set -eu
 
 # summary of how this script can be called:
 #        * <postinst> `configure' <most-recently-configured-version>
@@ -23,10 +23,8 @@ function copy_ssl {
     mode="$3"
     group="$4"
 
-    if [[ $HOSTNAME == autopkgtest-* ]]; then
-        if [[ ! -e $dst ]]; then
-            install -D -m "$mode" -g "$group" -T "$src" "$dst"
-        fi
+    if [[ $HOSTNAME == autopkgtest-* && ! -e $dst ]]; then
+        install -D -m "$mode" -g "$group" -T "$src" "$dst"
     fi
 }
 
