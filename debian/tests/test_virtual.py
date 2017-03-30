@@ -60,10 +60,11 @@ def test_special_aliases_reject(address, code, sendmail, print_logs, print_journ
         print_journal()
 
 @mark.xfail(reason="haven't got this working yet", strict=True)
-def test_save_to_detail_mailbox(imap, sendmail, print_logs, print_journal):
+@mark.parametrize('separator', ['+', '-'])
+def test_save_to_detail_mailbox(imap, sendmail, print_logs, print_journal, separator):
     try:
         imap.create('detail')
-        sendmail(To='account+detail@test.example', Subject='deliver to detail mailbox')
+        sendmail(To='account{}detail@test.example'.format(separator), Subject='deliver to detail mailbox')
         imap.select('detail')
         assert ('OK', [b'1']) == imap.uid('search', 'subject "deliver to detail mailbox"')
     finally:
