@@ -28,6 +28,8 @@ userdb {
 
 lmtp_save_to_detail_mailbox = yes
 
+mail_max_userip_connections = 15
+
 namespace inbox {
     mailbox Spam {
         auto = subscribe
@@ -87,5 +89,7 @@ service auth {
         group = Debian-exim
     }
 }
+
+#mail_debug = yes
 
 # vim: ft=conf ts=8 sts=4 sw=4 et
