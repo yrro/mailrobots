@@ -2,6 +2,6 @@ loadplugin Mail::SpamAssassin::Plugin::ASN
 loadplugin Mail::SpamAssassin::Plugin::RelayCountry
 #loadplugin Mail::SpamAssassin::Plugin::AWL
 #loadplugin Mail::SpamAssassin::Plugin::PDFInfo
-#loadplugin Mail::SpamAssassin::Plugin::Shortcircuit
+loadplugin Mail::SpamAssassin::Plugin::Shortcircuit
 #loadplugin Mail::SpamAssassin::Plugin::TxRep
 #loadplugin Mail::SpamAssassin::Plugin::URILocalBL
