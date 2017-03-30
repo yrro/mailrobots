@@ -1,8 +1,9 @@
 Test-Command:
- apt-get -t jessie-backports -y install python3-pytest 2>&1 && cd debian/tests && python3 -m pytest -v --durations=10 --color=yes
+ cd debian/tests && python3 -m pytest -v --durations=10 --color=yes
 Depends:
  @,
  python3,
+ python3-pytest (>= 3),
 Restrictions:
  isolation-container,
  needs-root,

@@ -14,6 +14,9 @@ from pytest import *
 
 imaplib.Debug=4
 
+if 'MOVE' not in imaplib.Commands:
+    imaplib.Commands['MOVE'] = imaplib.Commands['COPY']
+
 logs = [
     '/var/log/exim4/mainlog',
     '/var/log/exim4/rejectlog',

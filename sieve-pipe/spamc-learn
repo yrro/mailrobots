@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -eu
+
+if [[ "$1" = ham || "$1" = spam ]]; then
+    type="$1"
+else
+    printf "Unknown learn type: %s\n" "$1" >&2
+    exit 0
+fi
+
+if [[ -z ${USER:-} ]]; then
+    printf "USER environment variable not set\n" >&2
+    exit 0
+fi
+
+set +e
+spamc -s $((2*2**20)) -x -u "$USER" -L "$type"
+s="$?"
+set -e
+
+if [[ $s -eq 5 || $s -eq 6 ]]; then
+    echo ok
+    exit 0
+else
+    exit "$s"
+fi

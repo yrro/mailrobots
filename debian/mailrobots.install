@@ -4,6 +4,7 @@ permissions            /usr/lib/mailrobots
 update-exim4.conf.conf /usr/lib/mailrobots
 spamassassin-local.cf  /usr/lib/mailrobots
 sieve                  /usr/lib/mailrobots
+sieve-pipe             /usr/lib/mailrobots
 
 exim4 /etc
 
