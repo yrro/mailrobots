@@ -52,8 +52,6 @@ plugin {
     imapsieve_mailbox2_causes = COPY
     imapsieve_mailbox2_before = /var/lib/mailrobots/sieve/report-ham.sieve
 
-    recipient_delimiter = +-
-
     sieve_after = /var/lib/mailrobots/sieve/after
     sieve_extensions = +spamtest +spamtestplus
     sieve_global_extensions = +vnd.dovecot.pipe
