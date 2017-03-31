@@ -5,6 +5,8 @@ update-exim4.conf.conf /usr/lib/mailrobots
 spamassassin-local.cf  /usr/lib/mailrobots
 sieve                  /usr/lib/mailrobots
 sieve-pipe             /usr/lib/mailrobots
+spam-purge             /usr/lib/mailrobots
+ham-learn              /usr/lib/mailrobots
 
 exim4 /etc
 

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -eu
+
+query1=('(' MAILBOX Spam OR MAILBOX Trash OR '(' MAILBOX '*' '(' KEYWORD Junk KEYWORD '$Junk' ')' ')' ')' SAVEDBEFORE 30days)
+doveadm expunge -A "${query1[@]}"
+
+query2=(MAILBOX Spam '(' NOT KEYWORD Junk OR NOT KEYWORD '$Junk' ')')
+doveadm flags add 'Junk $Junk' "${query2[@]}" -A

@@ -1,0 +1,77 @@
+#!/usr/bin/python3
+
+# XXX runs as root?
+
+import subprocess
+import sys
+import tempfile
+
+def main():
+    kw = 'answered-learned-ham'
+    max_size = 2*2**20
+
+    class parser(base_parser):
+        def learn(self):
+            # XXX chronic
+            r = subprocess.call(['chronic', 'spamc', '-x', '-u', self.user, '-L', 'ham'], stdin=self.file.fileno())
+            if r == 0:
+                subprocess.check_call(['doveadm', 'flags', 'add', '-u', self.user, kw, 'mailbox-guid', self.mailbox_guid, 'uid', self.uid])
+
+    with subprocess.Popen(
+        ['doveadm', 'fetch', '-u', '*', 'mailbox-guid uid text', 'ANSWERED', 'NOT', 'KEYWORD', kw, 'SMALLER', str(max_size + 1)],
+        stdout=subprocess.PIPE
+    ) as proc:
+        par = parser()
+        for line in proc.stdout:
+            par.process_line(line)
+
+class base_parser:
+    def __init__(self):
+        self.__reset()
+
+    def process_line(self, line):
+        if self.__state == 0:
+            self.__read_field(line)
+        elif self.__state == 1:
+            self.__read_message(line)
+        else:
+            raise Exception('Invalid state {}', self.__state)
+
+    def __read_field(self, line):
+        if line.startswith(b'Username:'):
+            self.user = line.split()[1]
+        elif line.startswith(b'mailbox-guid:'):
+            self.mailbox_guid = line.split()[1]
+        elif line.startswith(b'uid:'):
+            self.uid = line.split()[1]
+        elif line.startswith(b'text:'):
+            self.__state = 1
+            self.file = tempfile.NamedTemporaryFile(buffering=4096)
+        else:
+            raise Exception('Unable to parse field for user {} mailbox {} uid {}: {}'.format(self.user, self.mailbox_guid, self.uid, line))
+
+    def __read_message(self, line):
+        if line == b'\x0c\n':
+            self.file.flush()
+            self.file.seek(0)
+            self.learn()
+            self.__reset()
+        else:
+            self.file.write(line)
+
+    def lean(self):
+        pass
+
+    def __reset(self):
+        self.__state = 0
+        self.user = None
+        self.mailbox_guid = None
+        self.uid = None
+        if hasattr(self, 'file'):
+            self.file.close()
+        self.file = tempfile.NamedTemporaryFile(buffering=4096)
+
+if __name__ == '__main__':
+    main()
+
+# vim: ts=4 sts=4 sw=4 et

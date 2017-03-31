@@ -1,0 +1,7 @@
+[Unit]
+Description=spam/trash purge
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/lib/mailrobots/spam-purge

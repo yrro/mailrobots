@@ -1,0 +1,7 @@
+[Unit]
+Description=ham learn
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/lib/mailrobots/ham-learn
