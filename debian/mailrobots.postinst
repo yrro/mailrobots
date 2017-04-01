@@ -101,9 +101,18 @@ function configure_clamav {
 }
 
 function configure_spamassassin {
+    local args=(
+        --create-prefs
+        --max-children=1
+        --helper-home-dir=/srv/mail/domains/spamd.invalid/users/spamd
+        -u mailstorage
+        --nouser-config
+        --virtual-config-dir=/srv/mail/domains/%d/users/%l
+        --allow-tell
+    )
     sed -i \
         -e '/^CRON=/s/=.*/=1/' \
-        -e '/^OPTIONS=/s,=.*,="--create-prefs --max-children 1 --helper-home-dir=/srv/mail/domains/spamd.invalid/users/spamd -u mailstorage --nouser-config --virtual-config-dir=/srv/mail/domains/%d/users/%l --allow-tell",' \
+        -e "/^OPTIONS=/s,=.*,=\"${args[*]}\"," \
         /etc/default/spamassassin
 
     if ! grep -q '^### mailrobots ###$' /etc/spamassassin/local.cf; then
