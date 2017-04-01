@@ -56,18 +56,55 @@ def test_spam_headers_added(sendmail, imap, print_logs, print_journal, header):
         print_logs()
         print_journal()
 
-def test_spam_delivered_to_spam_mailbox(lsendmail, imap, print_logs, print_journal):
+def test_spam_delivered_to_spam_mailbox(lsendmail, imap, print_journal):
     try:
         lsendmail(To='account@test.example', Subject='spam sieve test', headers={'X-Spam-Status': 'score=8.0 required=5.0'})
         status, dat = imap.select('Spam')
         assert 'OK' == status
         status, uids = imap.uid('search', 'subject "spam sieve test"')
-        assert ('OK', [b'1']) == imap.uid('search', 'subject "spam sieve test"')
+        assert 'OK' == status
         status, resp = imap.uid('fetch', uids[0].split()[0], '(flags)')
         assert 'OK' == status
         assert b'1 (UID 1 FLAGS (\\Recent Junk $Junk))' == resp[0]
     finally:
-        print_logs()
+        print_journal()
+
+def test_user_sieve_script(lsendmail, imap, managesieve, print_journal):
+    try:
+        managesieve.putscript('test',
+            'require ["fileinto", "mailbox"];'
+            'if address :is "from" "blah@blah.com" {'
+                'fileinto :create "blah";'
+                'stop;'
+            '}'
+        )
+        managesieve.setactive('test')
+        lsendmail(To='account@test.example', Subject='sieve test', From='blah@blah.com')
+        status, dat = imap.select('blah')
+        assert 'OK' == status
+        assert ('OK', [b'1']) == imap.uid('search', 'subject "sieve test"')
+    finally:
+        print_journal()
+
+def test_user_sieve_script_doesnt_prevent_global_spam_sieve_script(lsendmail, imap, managesieve, print_journal):
+    try:
+        managesieve.putscript('test',
+            'require ["fileinto", "mailbox"];'
+            'if address :is "from" "blah@blah.com" {'
+                'fileinto :create "blah";'
+                'stop;'
+            '}'
+        )
+        managesieve.setactive('test')
+        lsendmail(To='account@test.example', Subject='spam sieve test', headers={'X-Spam-Status': 'score=8.0 required=5.0'})
+        status, dat = imap.select('Spam')
+        assert 'OK' == status
+        status, uids = imap.uid('search', 'subject "spam sieve test"')
+        assert 'OK' == status
+        status, resp = imap.uid('fetch', uids[0].split()[0], '(flags)')
+        assert 'OK' == status
+        assert b'1 (UID 1 FLAGS (\\Recent Junk $Junk))' == resp[0]
+    finally:
         print_journal()
 
 @yield_fixture
@@ -91,7 +128,7 @@ def mock_spamc_learn():
         subprocess.check_call(['dpkg-divert', '--rename', '--remove', '/usr/lib/mailrobots/sieve-pipe/spamc-learn'])
 
 @mark.parametrize('verb', ['COPY', 'MOVE'])
-def test_tell_spam(lsendmail, imap, verb, print_logs, print_journal, mock_spamc_learn):
+def test_tell_spam(lsendmail, imap, verb, print_journal, mock_spamc_learn):
     try:
         lsendmail(To='account@test.example', Subject='spam tell test', headers={'X-Spam-Status': 'score=1.0 required=5.0'})
         status, dat = imap.select('INBOX')
@@ -106,11 +143,10 @@ def test_tell_spam(lsendmail, imap, verb, print_logs, print_journal, mock_spamc_
         with open(mock_spamc_learn) as f:
             assert ['USER=account@test.example\n', '@=spam\n'] == f.readlines()
     finally:
-        print_logs()
         print_journal()
 
 @mark.parametrize('verb', ['COPY', 'MOVE'])
-def test_tell_ham(lsendmail, imap, verb, print_logs, print_journal, mock_spamc_learn):
+def test_tell_ham(lsendmail, imap, verb, print_journal, mock_spamc_learn):
     try:
         lsendmail(To='account@test.example', Subject='ham tell test', headers={'X-Spam-Status': 'score=8.0 required=5.0'})
         status, dat = imap.select('Spam')
@@ -124,11 +160,10 @@ def test_tell_ham(lsendmail, imap, verb, print_logs, print_journal, mock_spamc_l
         with open(mock_spamc_learn) as f:
             assert ['USER=account@test.example\n', '@=ham\n'] == f.readlines()
     finally:
-        print_logs()
         print_journal()
 
 @mark.parametrize('verb', ['COPY', 'MOVE'])
-def test_trash_spam_no_tell(lsendmail, imap, verb, print_logs, print_journal, mock_spamc_learn):
+def test_trash_spam_no_tell(lsendmail, imap, verb, print_journal, mock_spamc_learn):
     try:
         lsendmail(To='account@test.example', Subject='spam trash test', headers={'X-Spam-Status': 'score=8.0 required=5.0'})
         status, dat = imap.create('Trash')
@@ -144,5 +179,4 @@ def test_trash_spam_no_tell(lsendmail, imap, verb, print_logs, print_journal, mo
         assert ('OK', [b'1']) == imap.uid('search', 'subject "spam trash test"')
         assert not os.path.exists(mock_spamc_learn)
     finally:
-        print_logs()
         print_journal()

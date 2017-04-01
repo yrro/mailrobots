@@ -5,6 +5,7 @@ import imaplib
 import os
 import pwd
 import shutil
+#import sievelib.managesieve
 import smtplib
 import socket
 import subprocess
@@ -167,3 +168,26 @@ def local_user():
     subprocess.check_call(['adduser', '--disabled-password', '--gecos', 'mailrobots test user', 'localuser'])
     yield
     subprocess.check_call(['deluser', '--remove-home','localuser'])
+
+@yield_fixture
+def managesieve(user_mailbox):
+    #c = sievelib.managesieve.Client(socket.gethostname())
+    #c.connect('account@test.example', 'password')
+    #yield c
+    #c.logout()
+    class Client:
+        def putscript(self, name, script):
+            os.makedirs('/srv/mail/domains/test.example/users/account/sieve')
+            with open('/srv/mail/domains/test.example/users/account/sieve/{}.sieve'.format(name), 'w') as f:
+                f.write(script)
+            subprocess.check_call(['chown', '-R', 'mailstorage:mailstorage', '/srv/mail/domains/test.example/users/account/sieve'])
+
+        def setactive(self, name):
+            os.symlink('sieve/{}.sieve'.format(name), '/srv/mail/domains/test.example/users/account/.dovecot.sieve')
+    yield Client()
+    try:
+        os.remove('/srv/mail/domains/test.example/users/account/.dovecot.sieve')
+    except FileNotFoundError:
+        pass
+    if os.path.exists('/srv/mail/domains/test.example/users/account/sieve'):
+        shutil.rmtree('/srv/mail/domains/test.example/users/account/sieve')
