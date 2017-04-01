@@ -13,3 +13,6 @@ override_dh_auto_test:
 
 override_dh_auto_install:
 	install -D -m 0644 -T debian/mailrobots.sysusers debian/mailrobots/usr/lib/sysusers.d/mailrobots.conf
+
+override_dh_systemd_start:
+	dh_systemd_start debian/*.timer
