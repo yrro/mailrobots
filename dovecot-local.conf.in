@@ -31,9 +31,19 @@ lmtp_save_to_detail_mailbox = yes
 mail_max_userip_connections = 15
 
 namespace inbox {
+    mailbox Drafts {
+        auto = subscribe
+        special_use = \Drafts
+    }
+
     mailbox Spam {
         auto = subscribe
         special_use = \Junk
+    }
+
+    mailbox Sent {
+        auto = no
+        special_use = \Sent
     }
 
     mailbox Trash {
