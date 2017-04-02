@@ -1,5 +1,6 @@
 /changelog
 /*.debhelper
+/*.debhelper.log
 /debhelper-build-stamp
 /files
 /*.substvars
