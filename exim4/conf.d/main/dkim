@@ -1,0 +1,8 @@
+# XXX test
+DKIM_DOMAIN = ${if exists {VIRTUAL_MAIL_DOMAINS/$sender_address_domain/dkim.key.pem} {$sender_address_domain}}
+DKIM_SELECTOR = 0
+DKIM_PRIVATE_KEY = /srv/mail/domains/$sender_address_domain/dkim.key.pem
+DKIM_CANON = relaxed
+DKIM_STRICT = true
+
+# vim: ft=exim
