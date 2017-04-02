@@ -10,7 +10,8 @@ def test_system_user():
     assert i
     assert lines[i+1].startswith(b'R: system_aliases for root@')
 
-def test_local_user(local_user):
+@mark.usefixtures('local_user')
+def test_local_user():
     with subprocess.Popen(['exim', '-bt', 'localuser'], stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
         o, e = p.communicate()
     olines = o.split(b'\n')
