@@ -24,7 +24,4 @@ MAIN_TLS_ENABLE = yes
 MAIN_TLS_CERTIFICATE = CONFDIR/ssl/smtp-LE-cert+chain.pem
 MAIN_TLS_PRIVATEKEY = CONFDIR/ssl/smtp-LE-key.pem
 
-#MAIN_TLS_TRY_VERIFY_HOSTS = *
-#MAIN_TLS_VERIFY_CERTIFICATES = CONFDIR/ssl/ca.pem
-
 # vim: ft=exim
